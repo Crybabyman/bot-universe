@@ -171,8 +171,8 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   .panel { border-left: 0; border-top: 1px solid var(--line); backdrop-filter: none; background: var(--void); }
   .hint { display: none; }
 }
-.missionlink { pointer-events: auto; justify-self: start; font-size: 12px; color: var(--core); text-decoration: none; border: 1px solid rgba(184, 164, 255, 0.4); border-radius: 999px; padding: 3px 11px; background: rgba(9, 11, 24, 0.7); }
-.missionlink:hover, .missionlink:focus-visible { border-color: var(--core); color: #fff; outline: none; }
+.missionlink { pointer-events: auto; justify-self: start; font-size: 14px; font-weight: 600; color: #fff; text-decoration: none; border: 1px solid rgba(184, 164, 255, 0.75); border-radius: 999px; padding: 7px 16px; background: rgba(120, 100, 255, 0.22); box-shadow: 0 0 14px rgba(184, 164, 255, 0.28); }
+.missionlink:hover, .missionlink:focus-visible { border-color: #fff; background: rgba(120, 100, 255, 0.38); box-shadow: 0 0 20px rgba(184, 164, 255, 0.5); outline: none; }
 .mission { min-height: 100%; background: radial-gradient(1200px 600px at 50% -10%, rgba(120, 100, 255, 0.14), transparent 70%), var(--void); }
 .mission-in { max-width: 720px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
 .mission-unused h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4vw, 32px); line-height: 1.3; letter-spacing: 0.03em; text-wrap: balance; }
@@ -193,6 +193,17 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
 .m-platforms dt { font-weight: 700; margin-bottom: 4px; }
 .m-platforms dd { margin: 0; color: var(--dim) !important; font-size: 14.5px !important; }
 .missionback { font-size: 13px; text-decoration: none; }
+.pagelinks { display: flex; gap: 8px; flex-wrap: wrap; pointer-events: auto; margin-top: 2px; }
+.report-day { border: 1px solid var(--line); border-radius: 12px; background: var(--raise); margin-bottom: 10px; }
+.report-day summary { cursor: pointer; padding: 12px 14px; font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; list-style: none; }
+.report-day summary::-webkit-details-marker { display: none; }
+.report-day summary::before { content: "▸"; color: var(--dim); transition: transform 0.15s; }
+.report-day[open] summary::before { transform: rotate(90deg); }
+.report-body { padding: 0 14px 14px; display: grid; gap: 8px; }
+.report-body h4 { margin: 8px 0 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+.report-body p, .report-body li { margin: 0; font-size: 14px; line-height: 1.6; }
+.report-body ul, .report-body ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.report-body code { font-family: var(--mono); font-size: 12.5px; }
 .mission-panel .mission-in { max-width: none; margin: 0; padding: 0; gap: 22px; }
 .mission-panel h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 21px; line-height: 1.35; letter-spacing: 0.03em; text-wrap: balance; }
 .mission-panel h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
@@ -210,7 +221,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
       <h1>Bot Universe</h1>
       <p><span id="botCount">Practice</span> trading bots · fake money · tap a galaxy to look inside</p>
       <nav class="crumbs" id="crumbs" aria-label="Where you are"></nav>
-      <a class="missionlink" href="#mission">Our mission →</a>
+      <div class="pagelinks"><a class="missionlink" href="#mission">Our mission →</a><a class="missionlink" href="#reports">Daily reports →</a></div>
       <span class="live" id="live"><i></i><span id="liveText">Loading…</span></span>
       <div class="moods" aria-label="Color key"><span><i style="background:#f6b94c;box-shadow:0 0 8px #f6b94c"></i>Doing fine</span><span><i style="background:#4fb8ff;box-shadow:0 0 8px #4fb8ff"></i>Making money (+1% or more)</span><span><svg class="flame" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>Losing money (−1% or more)</span></div>
     </div>
@@ -613,7 +624,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     neb.addColorStop(0, center.kind === "core" ? "rgba(120,100,255,0.16)" : "rgba(246,185,76,0.10)"); neb.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = neb; ctx.fillRect(center.x - center.r * 3.3, center.y - center.r * 3.3, center.r * 6.6, center.r * 6.6);
 
-    const focus = selected === "all" || selected === "mission" ? null : selected;
+    const focus = selected === "all" || selected === "mission" || selected === "reports" ? null : selected;
     // branches: every galaxy hangs off the core, every bot off its galaxy
     for (const n of nodes) {
       const par = n.parent; if (!par) continue;
@@ -1192,6 +1203,66 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   }
   panelIn.addEventListener("click", onGo);
   document.getElementById("crumbs").addEventListener("click", onGo);
+  // ---------- Daily reports page ----------
+  function mdRender(md) {            // small, safe markdown: headings, bold, italics, lists, tables
+    const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|[^*])\*([^*]+)\*/g, "$1<i>$2</i>").replace(/`([^`]+)`/g, "<code>$1</code>");
+    const lines = md.replace(/\r/g, "").split("\n"), out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const l = lines[i];
+      if (/^\s*\|/.test(l)) {                                      // table
+        const rows = [];
+        while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
+        const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+        const body = rows.filter(r => !/^\s*\|[\s:|-]+\|\s*$/.test(r));
+        out.push(`<div class="tw"><table class="trades">${body.map((r, k) => `<tr>${cells(r).map(c => k === 0 ? `<th>${inline(c)}</th>` : `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table></div>`);
+        continue;
+      }
+      if (/^#{1,6}\s/.test(l)) { out.push(`<h4>${inline(l.replace(/^#+\s*/, ""))}</h4>`); i++; continue; }
+      if (/^\s*([-*]|\d+\.)\s+/.test(l)) {                        // list
+        const ordered = /^\s*\d+\./.test(l), items = [];
+        while (i < lines.length && /^\s*([-*]|\d+\.)\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*([-*]|\d+\.)\s+/, ""));
+        out.push(`<${ordered ? "ol" : "ul"}>${items.map(x => `<li>${inline(x)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`);
+        continue;
+      }
+      if (!l.trim()) { i++; continue; }
+      const para = [];
+      while (i < lines.length && lines[i].trim() && !/^\s*(\||#|[-*]\s|\d+\.\s)/.test(lines[i])) para.push(lines[i++]);
+      out.push(`<p>${inline(para.join(" "))}</p>`);
+    }
+    return out.join("");
+  }
+  const prettyDate = d => { const t = new Date(d.slice(0, 10) + "T12:00:00"); return isNaN(t) ? d : t.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }) + (d.length > 10 ? ` (${d.slice(11)})` : ""); };
+  async function loadReports() {
+    const urls = SITE ? [RAW.replace("data.json", "reports.json") + "?t=" + Math.floor(Date.now() / 60000), "reports.json"] : ["reports.json"];
+    for (const u of urls) {
+      try { const r = await fetch(u, { cache: "no-store" }); if (r.ok) return await r.json(); } catch (e) { /* try next */ }
+    }
+    return null;
+  }
+  async function showReports() {
+    if (chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
+    selected = "reports";
+    for (const n of nodes) n.el.classList.toggle("sel", false);
+    document.getElementById("crumbs").innerHTML = `<button type="button" data-go="all">All galaxies</button><span>›</span><b>Daily reports</b>`;
+    document.title = "Daily reports · Bot Universe";
+    const head = `<div class="mission-panel"><div class="mission-in">
+      <a class="back missionback" href="#all">← All galaxies</a>
+      <p class="eyebrow"><span class="dot" style="background:var(--gold);box-shadow:0 0 10px var(--gold)"></span>Daily reports</p>
+      <h1>Every morning's check-in, in plain English.</h1>
+      <p class="m-lede">At about 9 AM Eastern, an AI review looks at every bot: how each is doing, what traded, what's working and what isn't, and what changed in the lab. Its report is posted here automatically.</p>`;
+    panelIn.innerHTML = head + `<p class="note">Loading reports…</p></div></div>`;
+    document.getElementById("panel").scrollTop = 0;
+    if (matchMedia("(max-width: 860px)").matches) document.getElementById("panel").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    const reports = await loadReports();
+    if (selected !== "reports") return;               // the viewer moved on
+    const body = !reports ? `<p class="err">Couldn't load the reports. Try again in a minute.</p>`
+      : !reports.length ? `<div class="m-callout">The first daily report arrives at about 9 AM Eastern. Check back then.</div>`
+      : reports.map((r, k) => `<details class="report-day"${k === 0 ? " open" : ""}><summary>${esc(prettyDate(r.date))}${k === 0 ? ' <span class="chip holding"><i></i>Latest</span>' : ""}</summary><div class="report-body">${mdRender(r.text)}</div></details>`).join("");
+    panelIn.innerHTML = head + `<section class="sec">${body}</section>
+      <p class="foot">Reports are written by an AI from the bots' fake-money results. They're a learning diary, not financial advice.</p></div></div>`;
+  }
+
   // "Our mission" opens in the side panel, with the galaxy map still on screen.
   function showMission() {
     if (chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
@@ -1205,6 +1276,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   }
   addEventListener("hashchange", () => {
     if (location.hash === "#mission") { showMission(); return; }
+    if (location.hash === "#reports") { showReports(); return; }
     document.title = "Bot Universe";
     select(location.hash.slice(1) || "all", true);
   });
@@ -1286,8 +1358,10 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     syncNodes();
     const keep = selected;
     selected = null;
-    select(keep && keep !== "mission" ? keep : (location.hash === "#mission" ? "all" : location.hash.slice(1) || "all"), true);
-    if (location.hash === "#mission" || keep === "mission") showMission();
+    const page = ["#mission", "#reports"].includes(location.hash) ? location.hash.slice(1) : (["mission", "reports"].includes(keep) ? keep : null);
+    select(page ? "all" : (keep || location.hash.slice(1) || "all"), true);
+    if (page === "mission") showMission();
+    if (page === "reports") showReports();
     paintLive();
   }
 
@@ -1305,7 +1379,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     if (countChanged) syncNodes(); else if (statusChanged) relayout(false);
     document.getElementById("live").classList.toggle("off", !data.runner.running);
     const p = document.getElementById("panel"), y = p.scrollTop;
-    if (selected === "mission") { /* keep the mission text as it is */ }
+    if (selected === "mission" || selected === "reports") { /* keep the page as it is */ }
     else if (selected === "all") { renderAll(); p.scrollTop = y; }
     else if (groupById(selected)) { /* keep the chart; numbers update live */ }
     else if (selected && botKey(byId(selected)) !== before) renderBot(byId(selected));
