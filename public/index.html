@@ -36,9 +36,22 @@ body { background: var(--void); color: var(--ink); font-family: var(--body); fon
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; }
 .app { display: grid; grid-template-columns: minmax(0, 1fr) 410px; height: 100%; }
-.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; touch-action: none; cursor: grab; user-select: none; }
+.stage.dragging { cursor: grabbing; }
+.stage::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 150px; z-index: 3; pointer-events: none; background: linear-gradient(rgba(5, 6, 13, 0.92) 55%, rgba(5, 6, 13, 0)); }
+.masthead { z-index: 4; }
+.stage.dragging .node { pointer-events: none; }
+.zoombar { position: absolute; z-index: 4; right: max(14px, env(safe-area-inset-right, 0px)); bottom: 14px; display: flex; gap: 4px; }
+.zoombar button { min-width: 34px; height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: rgba(9, 11, 24, 0.82); color: var(--ink); font: 600 14px/1 var(--body); cursor: pointer; }
+.zoombar button:hover, .zoombar button:focus-visible { border-color: var(--core); outline: none; }
+.howto { position: absolute; z-index: 3; left: max(16px, env(safe-area-inset-left, 0px)); bottom: 18px; margin: 0; font-size: 11px; color: var(--faint); pointer-events: none; }
+.stage.far .node .st { display: none; }
+.stage.veryfar .node:not(.center) .ch { display: none; }
+.node.ghostnode .nm { text-transform: none; letter-spacing: 0.04em; font-family: var(--body); font-size: 10.5px; color: var(--dim); }
+.node.ghostnode .st { font-size: 9.5px; color: var(--faint); }
+.node.ghostnode .ch { font-size: 10px; opacity: 0.8; }
 #sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.masthead { position: absolute; top: 18px; left: max(20px, env(safe-area-inset-left, 0px)); z-index: 3; pointer-events: none; display: grid; gap: 6px; }
+.masthead { position: absolute; top: 18px; left: max(20px, env(safe-area-inset-left, 0px)); right: 16px; z-index: 3; pointer-events: none; display: grid; gap: 6px; justify-items: start; }
 .masthead h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase; }
 .masthead p { margin: 0; color: var(--dim); font-size: 12px; }
 .live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--dim); }
@@ -48,12 +61,20 @@ button { font: inherit; color: inherit; }
 
 .node { position: absolute; z-index: 2; border-radius: 50%; border: 0; background: transparent; cursor: pointer; padding: 0; }
 .node:focus-visible { outline: 1px dashed var(--ink); outline-offset: 6px; }
-.node .tag { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); display: grid; justify-items: center; gap: 1px; white-space: nowrap; pointer-events: none; }
+.node .tag { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%) scale(var(--ls, 1)); transform-origin: top center; display: grid; justify-items: center; gap: 1px; white-space: nowrap; pointer-events: none; }
 .node .nm { font-family: var(--display); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); text-shadow: 0 0 8px var(--void), 0 0 2px var(--void); }
 .node .ch { font-family: var(--mono); font-size: 11px; text-shadow: 0 0 6px var(--void); }
 .node .v { text-transform: none; letter-spacing: 0.04em; }
+.node.botnode .nm { text-transform: none; letter-spacing: 0.06em; }
+.node.groupnode .nm { font-size: 11px; letter-spacing: 0.22em; }
+.node.groupnode.open .st::after { content: " · open"; }
+.node .st { max-width: 10em; white-space: normal; text-align: center; line-height: 1.15; }
+.crumbs { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--dim); pointer-events: auto; flex-wrap: wrap; }
+.crumbs:empty { display: none; }
+.crumbs button { border: 0; background: transparent; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 0; font-size: 12px; }
+.crumbs b { font-weight: 600; color: var(--ink); }
 .node .st { font-size: 10px; color: var(--dim); text-shadow: 0 0 6px var(--void), 0 0 2px var(--void); }
-.node.center .tag { top: 50%; transform: translate(-50%, -50%); }
+.node.center .tag { top: 50%; transform: translate(-50%, -50%) scale(var(--ls, 1)); transform-origin: center; }
 .node.center .nm { font-size: 11px; letter-spacing: 0.34em; }
 .node:hover .nm, .node.sel .nm { color: #fff; }
 
@@ -96,6 +117,9 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
 .links button:hover, .links button:focus-visible { border-color: var(--core); outline: none; }
 .links b { font-family: var(--display); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 400; }
 .links span { color: var(--dim); font-size: 12.5px; }
+.idea { display: grid; gap: 4px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--raise); }
+.idea b { font-weight: 600; }
+.idea span { color: var(--dim); font-size: 12.5px; }
 .back { justify-self: start; border: 0; background: transparent; color: var(--dim); cursor: pointer; padding: 0; font-size: 12.5px; }
 .back:hover, .back:focus-visible { color: var(--ink); outline: none; }
 .spark { width: 100%; height: auto; display: block; }
@@ -137,10 +161,13 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
 @media (max-width: 860px) {
   html, body { height: auto; }
   .app { display: block; height: auto; }
-  .stage { height: 82vh; min-height: 560px; max-height: 760px; }
+  .stage { height: 74vh; min-height: 520px; max-height: 720px; }
+  .howto { display: none; }
+  .stage::before { height: 190px; }
   .node .nm { font-size: 8.5px; letter-spacing: 0.14em; }
   .node .ch { font-size: 10px; }
   .node .st { font-size: 9px; }
+  .node.crowded .st { display: none; }
   .panel { border-left: 0; border-top: 1px solid var(--line); backdrop-filter: none; background: var(--void); }
   .hint { display: none; }
 }
@@ -151,11 +178,19 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     <canvas id="sky" aria-hidden="true"></canvas>
     <div class="masthead">
       <h1>Bot Universe</h1>
-      <p><span id="botCount">Practice</span> trading bots · fake money · tap a universe to look inside</p>
+      <p><span id="botCount">Practice</span> trading bots · fake money · tap a galaxy to look inside</p>
+      <nav class="crumbs" id="crumbs" aria-label="Where you are"></nav>
       <span class="live" id="live"><i></i><span id="liveText">Loading…</span></span>
       <div class="moods" aria-label="Color key"><span><i style="background:#f6b94c;box-shadow:0 0 8px #f6b94c"></i>Doing fine</span><span><i style="background:#4fb8ff;box-shadow:0 0 8px #4fb8ff"></i>Making money (+1% or more)</span><span><svg class="flame" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>Losing money (−1% or more)</span></div>
     </div>
     <div id="nodes"></div>
+    <div class="zoombar" id="zoombar" aria-label="Look around">
+      <button type="button" data-z="in" aria-label="Zoom in">+</button>
+      <button type="button" data-z="out" aria-label="Zoom out">−</button>
+      <button type="button" data-z="fit" aria-label="Fit everything on screen">Fit</button>
+      <button type="button" data-z="all" id="openAll" aria-label="Open or close every galaxy">Open all</button>
+    </div>
+    <p class="howto">Tap a galaxy to open it · drag to look around · scroll or pinch to zoom</p>
   </div>
   <aside class="panel" id="panel" aria-live="polite">
     <div class="panel-in" id="panelIn"><p class="note">Loading the bots…</p></div>
@@ -178,11 +213,11 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   let data = null, nodes = [], links = [], W = 0, H = 0, dpr = 1, stars = null, selected = null;
 
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const money = v => "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = v => "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: Math.abs(v) < 1 && v !== 0 ? 6 : 2 });
   const pct = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(2) + "%";
   const tone = v => v > 0.00005 ? "up" : v < -0.00005 ? "down" : "flat";
   const et = iso => new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " ET";
-  const barName = b => ({ "1h": "hourly prices", "4h": "4-hour prices", "1d": "daily prices" }[b] || b);
+  const barName = b => ({ "15m": "15-minute prices", "1h": "hourly prices", "4h": "4-hour prices", "1d": "daily prices" }[b] || b);
   const statusText = b => b.status === "holding" ? `Holding ${b.symbol.replace("/USD", "")}` : b.status === "stopped" ? "Paused after stop-loss" : "Waiting in cash";
 
   // ---------- particles ----------
@@ -240,84 +275,264 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   }
 
   // ---------- layout ----------
+  // One page. The core sits in the middle with one galaxy per asset around it. Tapping a
+  // galaxy opens it right there: its bots branch outward from it. Any number of galaxies can
+  // be open at once; open ones get a wider slice of the circle, and the circle grows so nothing
+  // overlaps. Positions are "world" units; the camera turns them into screen positions (drag to
+  // look around, scroll or pinch to zoom).
+  let animStart = -1e9, LW = 1, PX = 1, camAnim = null;
+  const expanded = new Set();          // ids of open galaxies
+  const nodeMap = new Map();           // id -> node, kept between changes so things glide
+  const ANIM = 700;
+  const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  const cam = { s: 1, x: 0, y: 0 };
+  let userMoved = false;
+  const toScreen = (wx, wy) => ({ x: wx * cam.s + cam.x, y: wy * cam.s + cam.y });
+  const topInset = () => document.querySelector(".masthead").offsetHeight + (W < 600 ? 24 : 16);
+  const BOT_GAP = 180, ROW_GAP = 205, FIRST_ROW = 300, GROUP_GAP = 280;
+  const rowsFor = n => n > 20 ? 3 : n > 9 ? 2 : 1;
+
+  function groupNeed(g, R) {           // how much of the circle (radians) a galaxy needs
+    if (!expanded.has(g.id)) return GROUP_GAP / R;
+    const per = Math.ceil(g.bots.length / rowsFor(g.bots.length));
+    return Math.max(GROUP_GAP / R, per * BOT_GAP / (R + FIRST_ROW));
+  }
+  function arrange() {                 // work out where every node should sit
+    const core = nodeMap.get("all"); if (!core) return;
+    core.tx = 0; core.ty = 0; core.r = 140;
+    const total = R => groups.reduce((sum, g) => sum + groupNeed(g, R), 0);
+    let R = 560;
+    while (total(R) > Math.PI * 2 && R < 40000) R *= 1.06;
+    const share = Math.PI * 2 / total(R);          // spread any spare room evenly
+    const widths = groups.map(g => groupNeed(g, R) * share);
+    let a = -Math.PI / 2 - widths[0] / 2;
+    groups.forEach((g, i) => {
+      const w = widths[i], mid = a + w / 2; a += w;
+      const gn = nodeMap.get(g.id); if (!gn) return;
+      const open = expanded.has(g.id);
+      gn.angle = mid; gn.tx = Math.cos(mid) * R; gn.ty = Math.sin(mid) * R; gn.r = open ? 88 : 72;
+      if (!open) return;
+      const n = g.bots.length, rows = rowsFor(n);
+      g.bots.forEach((b, j) => {
+        const bn = nodeMap.get(b.name); if (!bn) return;
+        const row = j % rows, k = Math.floor(j / rows), inRow = Math.ceil((n - row) / rows);
+        const rr = R + FIRST_ROW + row * ROW_GAP;
+        const span = Math.min(w * 0.94, inRow * BOT_GAP / rr);
+        const ang = mid - span / 2 + (k + 0.5) * span / inRow;
+        bn.tx = Math.cos(ang) * rr; bn.ty = Math.sin(ang) * rr; bn.r = b.status === "holding" ? 40 : 36;
+      });
+    });
+  }
+
   function layout() {
     const rect = stage.getBoundingClientRect();
     W = Math.max(1, rect.width); H = Math.max(1, rect.height); dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cv.width = W * dpr; cv.height = H * dpr;
     stars = document.createElement("canvas"); stars.width = W * dpr; stars.height = H * dpr;
     const s = stars.getContext("2d"); s.scale(dpr, dpr);
     for (let i = 0; i < W * H / 2600; i++) {
       s.fillStyle = `rgba(${200 + Math.random() * 55},${205 + Math.random() * 50},255,${rand(0.08, 0.6)})`;
       const z = Math.random() < 0.06 ? 1.6 : 0.9; s.fillRect(Math.random() * W, Math.random() * H, z, z);
     }
-    if (!data) return;
-    const narrow = W < 600;
-    const top = narrow ? document.querySelector(".masthead").offsetHeight + 26 : 0;
-    const h = H - top, base = Math.min(W, h);
-    const cx = W / 2, cy = top + h / 2 + (narrow ? 0 : 8);
-    const centerR = base * (narrow ? 0.17 : 0.15);
-    const botR = Math.max(20, base * (narrow ? 0.068 : 0.082));
-    const rx = Math.max(centerR + botR * 2.2, W / 2 - botR * (narrow ? 2.4 : 1.9));
-    const ry = Math.max(centerR + botR * 1.6, h / 2 - botR * 2.3);
+    if (!data || !nodes.length) return;
+    arrange();
+    if (animStart < 0 || reduce) for (const n of nodes) { n.x = n.tx; n.y = n.ty; }
+    if (!userMoved) fitCamera(false);
+    placeLabels();
+  }
+  function relayout(refit = true) {    // glide everything to its new place
+    for (const n of nodes) { n.sx = n.x ?? n.tx; n.sy = n.y ?? n.ty; }
+    arrange();
+    animStart = performance.now();
+    if (refit) { userMoved = false; fitCamera(true); }
+    if (reduce) { for (const n of nodes) { n.x = n.tx; n.y = n.ty; } placeLabels(); draw(0); }
+  }
+  function fitCamera(animated) {
+    if (!nodes.length) return;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const n of nodes) {
-      if (n.id === "all") { n.x = cx; n.y = cy; n.r = centerR; continue; }
-      const i = nodes.indexOf(n) - 1, k = nodes.length - 1;
-      const ang = -Math.PI / 2 + (i / k) * Math.PI * 2 + 0.18;
-      n.x = cx + Math.cos(ang) * rx; n.y = cy + Math.sin(ang) * ry * 0.92;
-      n.r = botR * (n.bot.status === "holding" ? 1.08 : 0.94);
+      const pad = n.r * 1.4;
+      x0 = Math.min(x0, n.tx - pad); x1 = Math.max(x1, n.tx + pad);
+      y0 = Math.min(y0, n.ty - pad); y1 = Math.max(y1, n.ty + pad);
     }
+    const top = topInset(), h = Math.max(120, H - top - 44);
+    // leave screen room for label text on every side (labels don't shrink as much as the map)
+    const to = { s: Math.min(1.3, Math.max(60, W - Math.min(170, W * 0.22)) / (x1 - x0), Math.max(60, h - 70) / (y1 - y0)) };
+    to.x = W / 2 - (x0 + x1) / 2 * to.s; to.y = top + (h - 30) / 2 - (y0 + y1) / 2 * to.s;
+    if (animated && !reduce) camAnim = { from: { ...cam }, to, start: performance.now() };
+    else { Object.assign(cam, to); camAnim = null; }
+    userMoved = false; labelDetail(to.s);
+  }
+  function zoomAt(f, px, py) {
+    camAnim = null;
+    const s2 = Math.min(3, Math.max(0.08, cam.s * f)); f = s2 / cam.s;
+    cam.x = px - (px - cam.x) * f; cam.y = py - (py - cam.y) * f; cam.s = s2;
+    userMoved = true; labelDetail(); placeLabels(); if (reduce) draw(0);
+  }
+  function labelDetail(sc = cam.s) {   // fewer words on the labels when zoomed far out
+    stage.classList.toggle("far", sc < 0.6);
+    stage.classList.toggle("veryfar", sc < 0.35);
+  }
+  function placeLabels() {
     for (const n of nodes) {
-      const el = n.el, hit = n.r * (n.id === "all" ? 1.1 : 1.25);
-      el.style.left = (n.x - hit) + "px"; el.style.top = (n.y - hit) + "px";
-      el.style.width = el.style.height = hit * 2 + "px";
+      if (!n.el) continue;
+      const q = toScreen(n.x, n.y);
+      const hit = Math.max(16, n.r * (n.kind === "bot" ? 1.25 : 1.1) * cam.s);
+      n.el.style.left = (q.x - hit) + "px"; n.el.style.top = (q.y - hit) + "px";
+      n.el.style.width = n.el.style.height = hit * 2 + "px";
     }
+    // labels shrink a little when zoomed out so neighbors don't collide
+    stage.style.setProperty("--ls", Math.min(1, Math.max(0.55, cam.s * 1.6)).toFixed(3));
+  }
+  function animate(t) {
+    let moved = false;
+    if (camAnim) {
+      const c = reduce ? 1 : ease((t - camAnim.start) / ANIM);
+      for (const k of ["s", "x", "y"]) cam[k] = camAnim.from[k] + (camAnim.to[k] - camAnim.from[k]) * c;
+      if (c >= 1) camAnim = null;
+      moved = true;
+    }
+    const pr = reduce ? 1 : ease((t - animStart) / ANIM);
+    if (!(pr >= 1 && nodes.every(n => n.x === n.tx && n.y === n.ty))) {
+      for (const n of nodes) {
+        const sx = n.sx ?? n.tx, sy = n.sy ?? n.ty;
+        n.x = sx + (n.tx - sx) * pr; n.y = sy + (n.ty - sy) * pr;
+        if (n.el && n.fresh) { n.el.style.opacity = String(Math.min(1, pr * 1.6)); if (pr >= 1) n.fresh = false; }
+      }
+      moved = true;
+    }
+    if (moved) placeLabels();
   }
 
+  // ---------- looking around: drag to move, scroll or pinch to zoom ----------
+  const ptrs = new Map();
+  let dragDist = 0, pinch0 = null;
+  stage.addEventListener("pointerdown", e => {
+    if (e.target.closest(".zoombar, .crumbs")) return;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) dragDist = 0;
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = { d: Math.hypot(a.x - b.x, a.y - b.y), s: cam.s }; }
+  });
+  addEventListener("pointermove", e => {
+    const p = ptrs.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size === 1) {
+      dragDist += Math.abs(dx) + Math.abs(dy);
+      if (dragDist > 6) { camAnim = null; cam.x += dx; cam.y += dy; userMoved = true; stage.classList.add("dragging"); placeLabels(); if (reduce) draw(0); }
+    } else if (ptrs.size === 2 && pinch0) {
+      const [a, b] = [...ptrs.values()], r = stage.getBoundingClientRect();
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt(pinch0.s * d / pinch0.d / cam.s, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+      dragDist = 99;
+    }
+  });
+  const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch0 = null; if (!ptrs.size) stage.classList.remove("dragging"); };
+  addEventListener("pointerup", endPtr); addEventListener("pointercancel", endPtr);
+  stage.addEventListener("wheel", e => {
+    e.preventDefault();
+    const r = stage.getBoundingClientRect();
+    zoomAt(Math.exp(-e.deltaY * 0.0015), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+  document.getElementById("zoombar").addEventListener("click", e => {
+    const b = e.target.closest("[data-z]"); if (!b) return;
+    if (b.dataset.z === "fit") { fitCamera(true); if (reduce) draw(0); }
+    else if (b.dataset.z === "all") {
+      if (expanded.size === groups.length) expanded.clear(); else for (const g of groups) expanded.add(g.id);
+      syncNodes();
+      b.textContent = expanded.size === groups.length ? "Close all" : "Open all";
+    }
+    else zoomAt(b.dataset.z === "in" ? 1.3 : 1 / 1.3, W / 2, H / 2);
+  });
+
   // ---------- drawing ----------
-  function curve(a, b) {   // quadratic control point pulled toward the center
-    const c = nodes[0], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+  function curve(a, b) {   // bend links toward the galaxy they share, or toward the core
+    const c = (a.kind === "bot" && a.parent && a.parent === b.parent) ? a.parent : nodes[0];
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
     return { cx: mx + (c.x - mx) * 0.38, cy: my + (c.y - my) * 0.38 };
   }
   function qpt(a, k, b, t) { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * k.cx + t * t * b.x, y: u * u * a.y + 2 * u * t * k.cy + t * t * b.y }; }
 
+  function drawSpiral(n, t, fade, speed, alive) {
+    const spin = reduce ? n.tilt : n.tilt - t / 1000 * speed;
+    for (const p of n.pts) {
+      const th = p.th + spin;
+      ctx.globalAlpha = p.a * fade * alive;
+      ctx.fillStyle = p.w ? "#ffffff" : n.color;
+      const s = (p.w ? 1.6 : 1.25) * PX;
+      ctx.fillRect(n.x + Math.cos(th) * p.r * n.r - s / 2, n.y + Math.sin(th) * p.r * n.r - s / 2, s, s);
+    }
+    ctx.globalAlpha = fade;
+    ctx.drawImage(SPRITES.white, n.x - n.r * 0.35, n.y - n.r * 0.35, n.r * 0.7, n.r * 0.7);
+  }
+  function drawMood(n, t, fade) {
+    if (n.mood === "up") {          // making money: a soft blue pulse
+      const pulse = reduce ? 0.35 : 0.25 + 0.18 * Math.sin(t / 450 + n.phase * 6);
+      const g2 = ctx.createRadialGradient(n.x, n.y, n.r * 0.2, n.x, n.y, n.r * 1.9);
+      g2.addColorStop(0, `rgba(79,184,255,${pulse * fade})`); g2.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.globalAlpha = 1; ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.9, 0, Math.PI * 2); ctx.fill();
+    }
+    if (n.mood === "down") {        // losing money: it's on fire
+      n.flames = n.flames || [];
+      const per = n.r > 40 ? 4 : 2;
+      if (!reduce) for (let k = 0; k < per; k++) n.flames.push({ x: rand(-0.55, 0.55) * n.r, y: rand(-0.1, 0.35) * n.r, vy: rand(0.35, 0.9), life: 1, s: rand(7, 14) * Math.max(1, n.r / 40) });
+      else if (!n.flames.length) for (let k = 0; k < 24; k++) n.flames.push({ x: rand(-0.5, 0.5) * n.r, y: rand(-0.9, 0.3) * n.r, vy: 0, life: rand(0.3, 1), s: rand(7, 13) });
+      for (const f of n.flames) {
+        if (!reduce) { f.y -= f.vy * n.r * 0.035; f.x *= 0.985; f.life -= 0.022; }
+        const sz = f.s * (0.4 + f.life);
+        ctx.globalAlpha = Math.max(0, f.life) * fade;
+        ctx.drawImage(f.life > 0.6 ? SPRITES.ember : SPRITES.flame, n.x + f.x - sz / 2, n.y + f.y - sz / 2, sz, sz);
+      }
+      if (!reduce) n.flames = n.flames.filter(f => f.life > 0).slice(-140);
+    } else if (n.flames) n.flames = null;
+  }
+
   function draw(t) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = "#05060d"; ctx.fillRect(0, 0, W, H);
     ctx.drawImage(stars, 0, 0, W, H);
-    if (!data) return;
+    if (!data || !nodes.length) return;
+    animate(t);
     const center = nodes[0];
+    ctx.setTransform(dpr * cam.s, 0, 0, dpr * cam.s, dpr * cam.x, dpr * cam.y);   // world -> screen
+    LW = 1 / cam.s;                                                             // keep lines a steady width on screen
+    PX = 1 / Math.sqrt(Math.max(0.3, cam.s));                                   // keep stars visible when zoomed out
     ctx.globalCompositeOperation = "lighter";
 
-    // nebula haze behind the core
+    // nebula haze behind the center
     const neb = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, center.r * 3.2);
-    neb.addColorStop(0, "rgba(120,100,255,0.16)"); neb.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = neb; ctx.fillRect(0, 0, W, H);
+    neb.addColorStop(0, center.kind === "core" ? "rgba(120,100,255,0.16)" : "rgba(246,185,76,0.10)"); neb.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = neb; ctx.fillRect(center.x - center.r * 3.3, center.y - center.r * 3.3, center.r * 6.6, center.r * 6.6);
 
     const focus = selected === "all" ? null : selected;
-    // spokes: every bot reports to the core
-    for (const n of nodes.slice(1)) {
-      const on = !focus || focus === n.id;
-      const g = ctx.createLinearGradient(center.x, center.y, n.x, n.y);
-      g.addColorStop(0, `rgba(184,164,255,${on ? 0.35 : 0.08})`); g.addColorStop(1, n.color + (on ? "55" : "12"));
-      ctx.strokeStyle = g; ctx.lineWidth = on ? 1.4 : 0.8;
-      ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(n.x, n.y); ctx.stroke();
+    // branches: every galaxy hangs off the core, every bot off its galaxy
+    for (const n of nodes) {
+      const par = n.parent; if (!par) continue;
+      const on = !focus || focus === n.id || focus === par.id;
+      const g = ctx.createLinearGradient(par.x, par.y, n.x, n.y);
+      g.addColorStop(0, `rgba(184,164,255,${on ? 0.32 : 0.07})`); g.addColorStop(1, n.color + (on ? "55" : "12"));
+      ctx.strokeStyle = g; ctx.lineWidth = (on ? 1.3 : 0.8) * LW;
+      ctx.beginPath(); ctx.moveTo(par.x, par.y); ctx.lineTo(n.x, n.y); ctx.stroke();
       if (!reduce) {
         const p = ((t / 2600 + n.phase) % 1);
-        const x = n.x + (center.x - n.x) * p, y = n.y + (center.y - n.y) * p;
-        ctx.globalAlpha = on ? 0.9 : 0.25; ctx.drawImage(SPRITES.core, x - 6, y - 6, 12, 12); ctx.globalAlpha = 1;
+        const x = n.x + (par.x - n.x) * p, y = n.y + (par.y - n.y) * p;
+        ctx.globalAlpha = on ? 0.9 : 0.25; ctx.drawImage(SPRITES.core, x - 5, y - 5, 10, 10); ctx.globalAlpha = 1;
       }
     }
-    // links between related bots
+    // links between related neighbors
     for (const L of links) {
       const on = !focus || focus === L.a.id || focus === L.b.id;
       const k = curve(L.a, L.b);
-      ctx.strokeStyle = on ? (focus ? "rgba(255,255,255,0.55)" : "rgba(200,190,255,0.28)") : "rgba(200,190,255,0.06)";
-      ctx.lineWidth = on && focus ? 1.6 : 1;
-      ctx.beginPath(); ctx.moveTo(L.a.x, L.a.y); ctx.quadraticCurveTo(k.cx, k.cy, L.b.x, L.b.y); ctx.stroke();
+      ctx.strokeStyle = on ? (focus ? "rgba(255,255,255,0.55)" : "rgba(200,190,255,0.24)") : "rgba(200,190,255,0.05)";
+      ctx.lineWidth = (on && focus ? 1.6 : 1) * LW;
+      if (L.ghost) ctx.setLineDash([5 * LW, 5 * LW]);
+      ctx.beginPath(); ctx.moveTo(L.a.x, L.a.y);
+      if (L.ghost) ctx.lineTo(L.b.x, L.b.y); else ctx.quadraticCurveTo(k.cx, k.cy, L.b.x, L.b.y);
+      ctx.stroke(); ctx.setLineDash([]);
       if (!reduce && on) {
         for (let j = 0; j < 2; j++) {
           const p = (t / 4200 + L.phase + j / 2) % 1, q = qpt(L.a, k, L.b, p);
-          ctx.globalAlpha = focus ? 1 : 0.6; ctx.drawImage(SPRITES.white, q.x - 5, q.y - 5, 10, 10); ctx.globalAlpha = 1;
+          ctx.globalAlpha = focus ? 1 : 0.55; ctx.drawImage(SPRITES.white, q.x - 4, q.y - 4, 8, 8); ctx.globalAlpha = 1;
         }
       }
     }
@@ -329,8 +544,8 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
       const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 1.5);
       glow.addColorStop(0, n.color + (dimmed ? "22" : "66")); glow.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.5, 0, Math.PI * 2); ctx.fill();
-      const fade = dimmed ? 0.3 : 1;
-      if (n.id === "all") {
+      const fade = (dimmed ? 0.3 : 1) * (n.kind === "ghost" ? 0.6 : 1);
+      if (n.kind === "core") {
         const rot = reduce ? 0.6 : t / 9000, cr = Math.cos(rot), sr = Math.sin(rot);
         const tilt = 0.35, ct = Math.cos(tilt), st = Math.sin(tilt);
         for (const p of n.pts) {
@@ -339,49 +554,24 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
           const depth = (z + 1.2) / 2.2;
           ctx.globalAlpha = p.a * depth * fade;
           ctx.fillStyle = p.w ? "#ffffff" : n.color;
-          const s = p.w ? 1.8 : 1.4;
+          const s = (p.w ? 1.8 : 1.4) * PX;
           ctx.fillRect(n.x + x * n.r - s / 2, n.y + y * n.r - s / 2, s, s);
         }
         ctx.globalAlpha = 0.9 * fade;
         ctx.drawImage(SPRITES.core, n.x - n.r * 0.5, n.y - n.r * 0.5, n.r, n.r);
+      } else if (n.kind === "group") {
+        drawSpiral(n, t, fade, expanded.has(n.id) ? 0.12 : 0.2, 1);
+        drawMood(n, t, fade);
       } else {
-        // Face-on, spinning as one piece (holding bots spin a bit faster).
-        const speed = n.bot.status === "holding" ? 0.32 : 0.16;
-        const spin = reduce ? n.tilt : n.tilt - t / 1000 * speed;
-        const alive = n.bot.status === "holding" ? 1 : 0.75;
-        for (const p of n.pts) {
-          const th = p.th + spin;
-          ctx.globalAlpha = p.a * fade * alive;
-          ctx.fillStyle = p.w ? "#ffffff" : n.color;
-          const s = p.w ? 1.6 : 1.25;
-          ctx.fillRect(n.x + Math.cos(th) * p.r * n.r - s / 2, n.y + Math.sin(th) * p.r * n.r - s / 2, s, s);
-        }
-        ctx.globalAlpha = fade;
-        ctx.drawImage(SPRITES.white, n.x - n.r * 0.35, n.y - n.r * 0.35, n.r * 0.7, n.r * 0.7);
-        if (n.mood === "up") {          // making money: a soft blue pulse
-          const pulse = reduce ? 0.35 : 0.25 + 0.18 * Math.sin(t / 450 + n.phase * 6);
-          const g2 = ctx.createRadialGradient(n.x, n.y, n.r * 0.2, n.x, n.y, n.r * 1.9);
-          g2.addColorStop(0, `rgba(79,184,255,${pulse * fade})`); g2.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.globalAlpha = 1; ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.9, 0, Math.PI * 2); ctx.fill();
-        }
-        if (n.mood === "down") {        // losing money: it's on fire
-          n.flames = n.flames || [];
-          if (!reduce) for (let k = 0; k < 2; k++) n.flames.push({ x: rand(-0.55, 0.55) * n.r, y: rand(-0.1, 0.35) * n.r, vy: rand(0.35, 0.9), life: 1, s: rand(7, 14) });
-          else if (!n.flames.length) for (let k = 0; k < 24; k++) n.flames.push({ x: rand(-0.5, 0.5) * n.r, y: rand(-0.9, 0.3) * n.r, vy: 0, life: rand(0.3, 1), s: rand(7, 13) });
-          for (const f of n.flames) {
-            if (!reduce) { f.y -= f.vy * n.r * 0.035; f.x *= 0.985; f.life -= 0.022; }
-            const sz = f.s * (0.4 + f.life);
-            ctx.globalAlpha = Math.max(0, f.life) * fade;
-            ctx.drawImage(f.life > 0.6 ? SPRITES.ember : SPRITES.flame, n.x + f.x - sz / 2, n.y + f.y - sz / 2, sz, sz);
-          }
-          if (!reduce) n.flames = n.flames.filter(f => f.life > 0).slice(-90);
-        } else if (n.flames) n.flames = null;
+        const holding = n.bot.status === "holding";
+        drawSpiral(n, t, fade, holding ? 0.32 : 0.16, holding ? 1 : 0.75);
+        drawMood(n, t, fade);
       }
       ctx.globalAlpha = 1;
       if (sel) {   // selection ring
         ctx.globalCompositeOperation = "source-over";
-        ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 1; ctx.setLineDash([3, 6]);
-        ctx.lineDashOffset = reduce ? 0 : -t / 60;
+        ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = LW; ctx.setLineDash([3 * LW, 6 * LW]);
+        ctx.lineDashOffset = reduce ? 0 : -t / 60 * LW;
         ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.32, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
         ctx.globalCompositeOperation = "lighter";
       }
@@ -400,10 +590,32 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   let liveOk = false;
   const priceOf = sym => live[sym] ?? data.prices[sym];
   const valueOf = b => b.cash + b.qty * priceOf(b.symbol);
-  const changeOf = b => valueOf(b) / data.budget_each - 1;
+  const budgetOf = b => b.budget || data.budget_each;
+  const changeOf = b => valueOf(b) / budgetOf(b) - 1;
   const totalOf = () => data.bots.reduce((s, b) => s + valueOf(b), 0);
   const signed = v => (v >= 0 ? "+" : "−") + money(Math.abs(v));
   const coin = s => s.replace("/USD", "");
+  let groups = [];                        // one per asset, in the bots' order
+  const slug = t => t.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  function makeGroups() {
+    const by = new Map();
+    for (const b of data.bots) {
+      if (b.retired) continue;            // retired bots keep their record but leave the map
+      const key = b.group || b.asset_name || b.symbol;
+      if (!by.has(key)) {
+        const about = (data.assets || {})[key] || (data.assets || {})[b.symbol] || {};
+        by.set(key, { id: slug(key), name: key, symbol: b.symbol, asset: b.asset, symbol_name: b.symbol_name,
+                      why: about.why, kid: about.kid, portfolio: !!b.group, bots: [] });
+      }
+      by.get(key).bots.push(b);
+    }
+    groups = [...by.values()];
+  }
+  const groupOf = b => groups.find(g => g.bots.includes(b));
+  const groupById = id => groups.find(g => g.id === id);
+  const groupValue = g => g.bots.reduce((s, b) => s + valueOf(b), 0);
+  const groupBudget = g => g.bots.reduce((s, b) => s + budgetOf(b), 0);
+  const groupChange = g => groupValue(g) / groupBudget(g) - 1;
 
   async function loadData() {
     const urls = SITE ? [RAW + "?t=" + Math.floor(Date.now() / 60000), "data.json"] : ["data.json"];
@@ -426,10 +638,10 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   function paintLive() {
     if (!data) return;
     for (const n of nodes) {
-      const ch = n.id === "all" ? totalOf() / data.total.start - 1 : changeOf(n.bot);
+      const ch = n.kind === "core" ? totalOf() / data.total.start - 1 : n.kind === "group" ? groupChange(n.group) : changeOf(n.bot);
       const el = n.el && n.el.querySelector(".ch");
       if (el) { el.textContent = pct(ch); el.className = "ch " + tone(ch); }
-      if (n.id !== "all") {
+      if (n.kind !== "core") {
         n.mood = moodOf(ch); n.color = COLORS[n.mood];
         const fl = n.el && n.el.querySelector(".flame"); if (fl) fl.hidden = n.mood !== "down";
       }
@@ -506,6 +718,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
       if (b.asset === "crypto") {
         if (mode === "24h") rows = await coinbase(b.symbol, 300, 288);
         else if (b.rule === "hold") rows = await coinbase(b.symbol, 3600, 240);
+        else if (b.bar === "15m") rows = await coinbase(b.symbol, 900, 300);
         else if (b.bar === "1h") rows = await coinbase(b.symbol, 3600, 300);
         else if (b.bar === "4h") rows = group(await coinbase(b.symbol, 3600, 1200), 14400).slice(-300);
         else rows = await coinbase(b.symbol, 86400, 300);
@@ -526,7 +739,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
       grid: { vertLines: { color: "rgba(150,165,255,0.06)" }, horzLines: { color: "rgba(150,165,255,0.06)" } },
       rightPriceScale: { borderColor: "rgba(150,165,255,0.14)" },
       timeScale: { borderColor: "rgba(150,165,255,0.14)", timeVisible: !(mode === "bot" && (b.bar === "1d" || b.asset === "stock")) },
-      localization: { priceFormatter: p => "$" + p.toLocaleString("en-US", { maximumFractionDigits: p < 1000 ? 2 : 0 }) },
+      localization: { priceFormatter: p => "$" + p.toLocaleString("en-US", { maximumFractionDigits: p < 1 ? 5 : p < 1000 ? 2 : 0 }) },
       handleScroll: { vertTouchDrag: false },
     });
     const color = COLORS[b.asset];
@@ -554,7 +767,11 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
         keys.push(["#63d6ff", `200-day average ${money(l.value)}`]);
       }
     }
-    if (b.qty > 0 && b.entry) {
+    if (mode === "bot") for (const l of (plan.levels || [])) {
+      mainSeries.createPriceLine({ price: l.value, color: "#9aa3c7", lineWidth: 1, lineStyle: 1, axisLabelVisible: true, title: l.label });
+    }
+    if ((plan.levels || []).length) keys.push(["#9aa3c7", "grey lines = the levels this bot is watching"]);
+    if (b.qty > 0 && b.entry && !["grid", "martingale", "rebalance", "dca"].includes(b.rule)) {
       mainSeries.createPriceLine({ price: b.entry, color: "#f6b94c", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "bought" });
       keys.push(["#f6b94c", `bought at ${money(b.entry)}`]);
     }
@@ -627,40 +844,140 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     }
     setTimeout(() => { btn.textContent = btn.textContent === "Link copied" ? "Copy link" : btn.textContent; }, 2500);
   }
+  const pc0 = v => v == null || v !== v ? "n/a" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(0) + "%";
+  function labSection(l) {
+    if (!l) return "";
+    const wf = l.walk_forward;
+    const verdict = l.excess > 0 && l.robustness >= 0.5 ? "Passed the deep tests so far" : "Did not pass the deep tests";
+    return `<section class="sec"><h3>Deep lab tests (${esc(l.from.slice(0, 4))}–${esc(l.to.slice(0, 4))}, all the history we have)</h3>
+      <p class="note">${esc(verdict)}. These are much harder than the 2-year test: more years, nearby settings, and a luck adjustment.</p>
+      <dl class="facts">
+        <div><dt>Whole period</dt><dd class="${tone(l.long_return)}">${pc0(l.long_return)}</dd></div>
+        <div><dt>Buy &amp; Hold, same dates</dt><dd class="${tone(l.buy_hold)}">${pc0(l.buy_hold)}</dd></div>
+        <div><dt>Years it beat Buy &amp; Hold</dt><dd>${esc(l.years_beat)}</dd></div>
+        <div><dt>Nearby settings that also won*</dt><dd>${Math.round(l.robustness * 100)}% of ${l.grid_size}</dd></div>
+        <div><dt>Worst drop (Buy &amp; Hold)</dt><dd>${pc0(l.worst_drop)} (${pc0(l.buy_hold_worst_drop)})</dd></div>
+        <div><dt>Sharpe (return per bumpiness)</dt><dd>${l.sharpe == null ? "n/a" : l.sharpe.toFixed(2)}</dd></div>
+        ${wf ? `<div><dt>Walk-forward: re-tuned / fixed</dt><dd>${pc0(wf.tuned)} / ${pc0(wf.fixed)}</dd></div>
+                <div><dt>Buy &amp; Hold in those years</dt><dd>${pc0(wf.buy_hold)}</dd></div>` : ""}
+        <div><dt>Chance it's not luck**</dt><dd>${l.luck_adjusted == null ? "n/a" : Math.round(l.luck_adjusted * 100) + "%"}</dd></div>
+        <div><dt>Trades per year</dt><dd>${l.trades_per_year == null ? "n/a" : l.trades_per_year.toFixed(0)}</dd></div>
+      </dl>
+      <p class="note">*Same rule with slightly different numbers. A real edge works across the neighborhood; a fluke only works for one setting. **Allows for every setting the lab has ever tried.</p></section>`;
+  }
+  function shadowSection() {
+    const sh = data.shadow || [];
+    if (!sh.length) return "";
+    const hold = {}; for (const x of sh) if (x.template === "hold") hold[x.symbol] = x.change;
+    const rows = sh.filter(x => x.template !== "hold" && hold[x.symbol] != null).map(x => ({ ...x, vs: x.change - hold[x.symbol] }));
+    const fam = {}; for (const x of rows) (fam[x.strategy.replace(/^.*? · /, "")] ||= []).push(x);
+    const byT = {}; for (const x of rows) (byT[x.template] ||= []).push(x);
+    const famRows = Object.entries(byT).map(([t, xs]) => ({ t, name: xs[0].strategy, n: xs.length, avg: xs.reduce((a, b) => a + b.vs, 0) / xs.length, beat: xs.filter(x => x.vs > 0).length }))
+      .sort((a, b) => b.avg - a.avg);
+    const top = [...rows].sort((a, b) => b.vs - a.vs).slice(0, 8);
+    const assets = new Set(sh.map(x => x.symbol)).size;
+    return `<section class="sec"><h3>Shadow league · ${sh.length} bots on ${assets} assets</h3>
+      <p class="note">Shadow bots follow live prices and keep fake books with real fees, but never place orders. They're the farm team: the best can be promoted to real paper bots.</p>
+      <div class="tw"><table class="trades"><thead><tr><th>Rule (on every asset)</th><th style="text-align:right">vs Buy &amp; Hold</th><th style="text-align:right">Beating it on</th></tr></thead><tbody>
+      ${famRows.map(f => `<tr><td>${esc(f.name)}</td><td class="num ${tone(f.avg)}">${esc(pct(f.avg))}</td><td class="num">${f.beat}/${f.n}</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="note">Leaders: ${top.map(x => `${esc(x.title)} <span class="${tone(x.vs)}">${esc(pct(x.vs))}</span>`).join(", ") || "none yet"}</p></section>`;
+  }
+  function ideasSection() {
+    const ideas = data.ideas || [];
+    if (!ideas.length) return "";
+    const tag = s => s === "passed" ? `<span class="chip holding"><i></i>Passed</span>` : s === "failed" ? `<span class="chip stopped"><i></i>Failed</span>` : `<span class="chip cash"><i></i>Queued</span>`;
+    return `<section class="sec"><h3>Idea queue</h3>
+      <p class="note">New ideas get the deep tests first. Ideas that pass on enough assets become shadow bots automatically.</p>
+      <div class="links">${ideas.map(i => `<div class="idea"><b>${esc(i.title)}</b> ${tag(i.status)}<span>${esc(i.result || i.why || "")}</span></div>`).join("")}</div></section>`;
+  }
+  function portfolioSection() {
+    const pf = data.portfolios || [];
+    if (!pf.length) return "";
+    return `<section class="sec"><h3>Portfolio tests</h3>
+      <p class="note">One rule run on a whole basket at once, with equal money in each asset, compared with holding the same basket.</p>
+      <div class="tw"><table class="trades"><thead><tr><th>Basket</th><th>Best rule</th><th style="text-align:right">Per year</th><th style="text-align:right">Worst drop</th><th style="text-align:right">Holding: total / worst drop</th></tr></thead><tbody>
+      ${pf.map(r => `<tr><td>${esc(r.basket)}</td><td>${esc(r.rule)}</td><td class="num ${tone(r.per_year)}">${pc0(r.per_year)}</td><td class="num">${pc0(r.worst_drop)}</td><td class="num">${pc0(r.hold_total)} / ${pc0(r.hold_worst_drop)}</td></tr>`).join("")}
+      </tbody></table></div></section>`;
+  }
   function mdLite(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^#+\s*(.*)$/gm, "<strong>$1</strong>"); }
+
+  function botRows(list, numbered = true) {
+    const maxAbs = Math.max(0.005, ...list.map(b => Math.abs(changeOf(b))));
+    return `<div class="rank">${list.map((b, i) => {
+      const c = changeOf(b), w = Math.abs(c) / maxAbs * 50, col = c >= 0 ? "var(--up)" : "var(--down)";
+      return `<button type="button" data-go="${esc(b.name)}"><span class="n">${numbered ? i + 1 : ""}</span>
+        <span class="who"><b>${esc(titleOf(b))}</b><small>${esc(statusText(b))}</small></span>
+        <span class="pct ${tone(c)}" data-live="change|${esc(b.name)}">${esc(pct(c))}</span>
+        <span class="bar"><i style="background:${col};${c >= 0 ? `left:50%;width:${w}%` : `right:50%;width:${w}%`}"></i></span></button>`;
+    }).join("")}</div>`;
+  }
 
   function renderAll() {
     const ranked = [...data.bots].sort((a, b) => valueOf(b) - valueOf(a));
-    const maxAbs = Math.max(0.005, ...ranked.map(b => Math.abs(changeOf(b))));
     const holding = data.bots.filter(b => b.status === "holding").length;
-    const trades = data.bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.name }))).sort((a, b) => b.time.localeCompare(a.time)).slice(0, 10);
+    const trades = data.bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.name }))).sort((a, b) => b.time.localeCompare(a.time)).slice(0, 12);
     const T = data.total, tc = totalOf() / T.start - 1;
+    const gr = [...groups].sort((a, b) => groupChange(b) - groupChange(a));
+    const maxG = Math.max(0.005, ...gr.map(g => Math.abs(groupChange(g))));
     panelIn.innerHTML = `
       <div class="eyebrow"><span class="dot" style="background:var(--core);box-shadow:0 0 10px var(--core)"></span>The core · all bots</div>
       <h2>How the bots are doing</h2>
-      <p class="lede">${data.bots.length} practice bots, each given a pretend ${esc(money(data.budget_each).replace(".00", ""))} on a fake-money account. Each one follows a different trading rule so they can be compared. Tap any universe to see what that bot is doing right now.</p>
+      <p class="lede">${data.bots.length} practice bots, each given a pretend ${esc(money(data.budget_each).replace(".00", ""))} on a fake-money account, spread across ${groups.length} galaxies, one for each thing they trade. Tap a galaxy to see its bots, then tap a bot to see what it's doing right now.</p>
       ${eli5(data.overview && data.overview.why, data.overview && data.overview.kid)}
       ${shareBtn("Copy link to this page")}
       <div class="big"><b data-live="total">${esc(money(totalOf()))}</b><span data-live="totalchange" class="${tone(tc)}">${esc(pct(tc))}</span><span class="flat">from ${esc(money(T.start))}</span></div>
       <dl class="facts">
-        ${Object.keys(data.prices).map(sym => { const bb = data.bots.find(x => x.symbol === sym);
-          return `<div><dt>${esc(bb ? bb.symbol_name : sym)}${live[sym] ? " (live)" : ""}</dt><dd data-live="price|${esc(sym)}">${esc(money(priceOf(sym)))}</dd></div>`; }).join("")}
         <div><dt>Holding right now</dt><dd>${holding} of ${data.bots.length} bots</dd></div>
         <div><dt>Waiting in cash</dt><dd>${data.bots.length - holding} bots</dd></div>
+        <div><dt>Best galaxy</dt><dd>${esc(gr[0].name)}</dd></div>
+        <div><dt>Worst galaxy</dt><dd>${esc(gr[gr.length - 1].name)}</dd></div>
       </dl>
-      <section class="sec"><h3>Leaderboard</h3>
-        <div class="rank">${ranked.map((b, i) => {
-          const c = changeOf(b), w = Math.abs(c) / maxAbs * 50;
-          const col = c >= 0 ? "var(--up)" : "var(--down)";
-          return `<button type="button" data-go="${esc(b.name)}"><span class="n">${i + 1}</span>
-            <span class="who"><b>${esc(titleOf(b))}</b><small>${esc(statusText(b))}</small></span>
-            <span class="pct ${tone(c)}" data-live="change|${esc(b.name)}">${esc(pct(c))}</span>
+      <section class="sec"><h3>Galaxies (average of their bots)</h3>
+        <div class="rank">${gr.map((g, i) => {
+          const c = groupChange(g), w = Math.abs(c) / maxG * 50, col = c >= 0 ? "var(--up)" : "var(--down)";
+          return `<button type="button" data-go="${esc(g.id)}"><span class="n">${i + 1}</span>
+            <span class="who"><b>${esc(g.name)}</b><small>${g.bots.length} bot${g.bots.length > 1 ? "s" : ""} · ${esc(money(priceOf(g.symbol)))}</small></span>
+            <span class="pct ${tone(c)}">${esc(pct(c))}</span>
             <span class="bar"><i style="background:${col};${c >= 0 ? `left:50%;width:${w}%` : `right:50%;width:${w}%`}"></i></span></button>`;
         }).join("")}</div>
       </section>
+      <section class="sec"><h3>Top 5 bots</h3>${botRows(ranked.slice(0, 5))}</section>
+      <section class="sec"><h3>Bottom 5 bots</h3>${botRows(ranked.slice(-5).reverse(), false)}</section>
+      ${shadowSection()}
+      ${portfolioSection()}
+      ${ideasSection()}
       <section class="sec"><h3>Latest trades</h3>${tradesTable(trades, true)}</section>
+      ${data.bots.some(b => b.retired) ? `<section class="sec"><h3>Retired bots</h3><div class="rank">${data.bots.filter(b => b.retired).map(b =>
+        `<button type="button" data-go="${esc(b.name)}"><span class="n"></span><span class="who"><b>${esc(titleOf(b))}</b><small>${esc(b.retired)}</small></span><span class="pct ${tone(b.change)}">${esc(pct(b.change))}</span><span></span></button>`).join("")}</div></section>` : ""}
       ${data.summary ? `<section class="sec"><h3>Daily report · ${esc(data.summary.date)}</h3><div class="report">${mdLite(data.summary.text)}</div></section>` : ""}
-      <p class="foot">Paper trading on Alpaca with fake money. A learning project, not investment advice. It's far too early to judge any bot; a fair comparison needs a few months.<br>Bitcoin prices update live from Coinbase; bot data updates every few minutes (last ${esc(et(data.generated))}).</p>`;
+      <p class="foot">Paper trading on Alpaca with fake money. A learning project, not investment advice. It's far too early to judge any bot; a fair comparison needs a few months.<br>Crypto prices update live from Coinbase; bot data updates every few minutes (last ${esc(et(data.generated))}).</p>`;
+  }
+
+  function renderGroup(g) {
+    const ranked = [...g.bots].sort((a, b) => valueOf(b) - valueOf(a));
+    const c = groupChange(g), holding = g.bots.filter(b => b.status === "holding").length;
+    const pseudo = { name: g.id, asset: g.asset, symbol: g.symbol, rule: "hold", bar: "1h", trades: [], plan: {}, qty: 0 };
+    panelIn.innerHTML = `
+      <div class="toprow"><button type="button" class="back" data-go="all">← All galaxies</button>${shareBtn("Copy link to this galaxy")}</div>
+      <div class="eyebrow"><span class="dot" style="background:${COLORS[moodOf(c)]};box-shadow:0 0 10px ${COLORS[moodOf(c)]}"></span>${g.asset === "crypto" ? "Crypto galaxy" : "Stock market galaxy"}</div>
+      <h2>${esc(g.name)}</h2>
+      <p class="lede">${g.portfolio ? `One portfolio split into ${g.bots.length} equal slices, one per coin: ${esc(g.bots.map(b => b.asset_name).join(", "))}.` : `${g.bots.length} bot${g.bots.length > 1 ? "s" : ""} trading ${esc(g.symbol_name || g.symbol)}.`} Tap one of the small universes to see what it's doing.</p>
+      ${eli5(g.why, g.kid)}
+      <div class="big"><b>${esc(money(groupValue(g)))}</b><span class="${tone(c)}">${esc(pct(c))}</span><span class="flat">from ${esc(money(groupBudget(g)))}</span></div>
+      <dl class="facts">
+        ${g.portfolio ? `<div><dt>Coins in it</dt><dd>${g.bots.length}</dd></div>` : `<div><dt>${esc(coin(g.symbol))} price${live[g.symbol] ? " (live)" : ""}</dt><dd data-live="price|${esc(g.symbol)}">${esc(money(priceOf(g.symbol)))}</dd></div>`}
+        <div><dt>Holding right now</dt><dd>${holding} of ${g.bots.length}</dd></div>
+      </dl>
+      ${g.portfolio ? "" : `<section class="sec">
+        <div class="tabs" role="tablist">${MODES(pseudo).map(([m, label]) => `<button type="button" role="tab" data-mode="${m}" aria-selected="${m === chartMode}">${esc(label)}</button>`).join("")}</div>
+        <div id="chart" class="chart"></div>
+        <div class="legend" id="chartLegend"></div>
+      </section>`}
+      <section class="sec"><h3>Its bots</h3>${botRows(ranked)}</section>
+      <p class="foot">Fake money on a practice account. Bot data from ${esc(et(data.generated))}.</p>`;
+    paintLive();
+    if (!g.portfolio) mountChart(pseudo);
   }
 
   function renderBot(b) {
@@ -670,11 +987,12 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     const latest = b.latest ? `${b.latest.wants ? "Rule says: own it" : "Rule says: stay out"} → ${b.latest.action}` : "No check yet";
     const holding = b.qty > 0;
     panelIn.innerHTML = `
-      <div class="toprow"><button type="button" class="back" data-go="all">← All bots</button>${shareBtn("Copy link to this bot")}</div>
+      <div class="toprow"><button type="button" class="back" data-go="${esc((groupOf(b) || {}).id || "all")}">← ${esc((groupOf(b) || {}).name || "All bots")} galaxy</button>${shareBtn("Copy link to this bot")}</div>
       <div class="eyebrow"><span class="dot" style="background:${n.color};box-shadow:0 0 10px ${n.color}"></span>Trading ${esc(b.symbol_name || b.symbol)}</div>
       <h2>${esc(titleOf(b))}</h2>
       <p class="note">Bot ID: ${esc(b.name)}</p>
       <p class="lede">${esc(b.plain || b.description)}</p>
+      ${b.twin_of ? `<p class="note">Marketplace twin: a paper copy of <b>${esc(b.twin_of)}</b>, tested on our own data.</p>` : ""}
       ${eli5(b.why, b.kid)}
       <div class="big"><b data-live="value|${esc(b.name)}">${esc(money(valueOf(b)))}</b><span data-live="change|${esc(b.name)}" class="${tone(changeOf(b))}">${esc(pct(changeOf(b)))}</span>${chip(b)}</div>
       <dl class="facts">
@@ -709,6 +1027,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
           <div><dt>Year 2</dt><dd>${esc(bt.year2)}</dd></div>
         </dl>
         <p class="note">*From replaying the bot's past trades in random order 5,000 times. Past results don't predict future ones.</p></section>` : ""}
+      ${labSection(b.lab)}
       ${rel.length ? `<section class="sec"><h3>Connected universes</h3><div class="links">${rel.map(l => {
         const other = l.a === b.name ? l.b : l.a;
         return `<button type="button" data-go="${esc(other)}"><b>${esc(titleById(other))}</b><span>${esc(l.why)}</span></button>`;
@@ -720,58 +1039,126 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   }
 
   function select(id, fromHash) {
-    if (id !== "all" && !byId(id)) id = "all";
+    if (id !== "all" && !byId(id) && !groupById(id)) id = "all";
     if (id !== selected) chartMode = "bot";
+    // opening a galaxy or a bot opens its galaxy on the map
+    const g = groupById(id) || (byId(id) && !byId(id).retired ? groupOf(byId(id)) : null);
+    if (g && !expanded.has(g.id)) { expanded.add(g.id); syncNodes(); }
     selected = id;
     for (const n of nodes) n.el.classList.toggle("sel", n.id === id);
-    if (id === "all" && chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
-    id === "all" ? renderAll() : renderBot(byId(id));
+    if (chart && (id === "all")) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
+    if (id === "all") renderAll(); else if (groupById(id)) renderGroup(groupById(id)); else renderBot(byId(id));
+    const crumb = document.getElementById("crumbs");
+    crumb.innerHTML = g ? `<button type="button" data-go="all">All galaxies</button><span>›</span><button type="button" data-go="${esc(g.id)}">${esc(g.name)}</button>${byId(id) ? `<span>›</span><b>${esc("v" + byId(id).version)}</b>` : ""}` : "";
     document.getElementById("panel").scrollTop = 0;
     if (!fromHash && location.hash.slice(1) !== id && !(id === "all" && !location.hash)) location.hash = id;
+    const oa = document.getElementById("openAll"); if (oa) oa.textContent = expanded.size === groups.length ? "Close all" : "Open all";
     if (reduce) draw(0);
   }
-  panelIn.addEventListener("click", e => {
+  function tapNode(n) {
+    if (n.kind === "core") { select("all"); return; }
+    if (n.kind === "group") {
+      if (!expanded.has(n.id)) { expanded.add(n.id); syncNodes(); select(n.id); }
+      else if (selected === n.id) { expanded.delete(n.id); syncNodes(); select("all"); }
+      else select(n.id);
+      return;
+    }
+    select(selected === n.id ? n.parent.id : n.id);
+  }
+  function onGo(e) {
     const sh = e.target.closest("[data-share]");
     if (sh) { share(sh); return; }
     const tab = e.target.closest("[data-mode]");
     if (tab) {
       chartMode = tab.dataset.mode;
       for (const t of panelIn.querySelectorAll("[data-mode]")) t.setAttribute("aria-selected", t === tab);
-      mountChart(byId(selected));
+      const gsel = groupById(selected);
+      mountChart(gsel ? { name: gsel.id, asset: gsel.asset, symbol: gsel.symbol, rule: "hold", bar: "1h", trades: [], plan: {}, qty: 0 } : byId(selected));
       return;
     }
     const go = e.target.closest("[data-go]"); if (!go) return;
     select(go.dataset.go);
-    if (matchMedia("(max-width: 860px)").matches && go.dataset.go !== "all") stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
-  });
+    if (matchMedia("(max-width: 860px)").matches && go.closest("#panelIn")) stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }
+  panelIn.addEventListener("click", onGo);
+  document.getElementById("crumbs").addEventListener("click", onGo);
   addEventListener("hashchange", () => select(location.hash.slice(1) || "all", true));
 
   // ---------- boot ----------
+  const small = () => innerWidth < 600;
+  const FLAME = `<svg class="flame" hidden viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>`;
+  function makeNode(id, kind, obj, parent) {
+    const n = { id, kind, parent, color: kind === "core" ? COLORS.core : COLORS.fine, mood: "fine",
+                phase: Math.random(), tilt: rand(0, Math.PI * 2), r: kind === "core" ? 140 : kind === "group" ? 72 : 36, fresh: true };
+    if (kind === "core") n.pts = makeSphere(small() ? 900 : 1500);
+    else if (kind === "group") { n.group = obj; n.pts = makeSpiral(small() ? 420 : 700, 2); }
+    else { n.bot = obj; n.pts = makeSpiral((small() ? 240 : 400) * (obj.status === "holding" ? 1.25 : 1), obj.rule === "regime" ? 3 : 2); }
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "node" + (kind === "core" ? " center" : "") + (kind === "bot" ? " botnode" : "") + (kind === "group" ? " groupnode" : "");
+    let name, sub = "";
+    if (kind === "core") name = "All bots";
+    else if (kind === "group") { name = obj.name; sub = `${obj.bots.length} bot${obj.bots.length > 1 ? "s" : ""}`; }
+    else if (obj.group) { name = obj.asset_name; sub = "slice"; }
+    else { name = `v${obj.version || 1}`; sub = obj.strategy || ""; }
+    el.setAttribute("aria-label", kind === "bot" ? `${titleOf(obj)}, ${statusText(obj)}`
+      : kind === "group" ? `${obj.name} galaxy, ${obj.bots.length} bots. Tap to open or close.` : "All bots summary");
+    el.innerHTML = `<span class="tag"><span class="nm">${kind === "core" ? "" : FLAME}${esc(name)}</span>${sub ? `<span class="st">${esc(sub)}</span>` : ""}<span class="ch"></span></span>`;
+    el.style.opacity = "0";
+    el.addEventListener("click", () => { if (dragDist > 6) return; tapNode(n); });
+    n.el = el; nodesEl.appendChild(el);
+    // new nodes grow out of their parent
+    const from = parent || { x: 0, y: 0 };
+    n.x = n.sx = from.x ?? 0; n.y = n.sy = from.y ?? 0;
+    return n;
+  }
+  function syncNodes() {
+    const want = new Map();
+    const core = nodeMap.get("all") || makeNode("all", "core", null, null);
+    want.set("all", core);
+    for (const g of groups) {
+      const gn = nodeMap.get(g.id) || makeNode(g.id, "group", g, core);
+      gn.group = g; want.set(g.id, gn);
+      if (expanded.has(g.id)) for (const b of g.bots) {
+        const bn = nodeMap.get(b.name) || makeNode(b.name, "bot", b, gn);
+        bn.bot = b; want.set(b.name, bn);
+      }
+    }
+    for (const [id, n] of nodeMap) if (!want.has(id)) n.el.remove();      // closed galaxies fold up
+    nodeMap.clear(); for (const [id, n] of want) nodeMap.set(id, n);
+    nodes = [...want.values()];
+    // links: bot to bot when both are showing; bot to the other galaxy when that one is closed;
+    // galaxy to galaxy when neither bot is showing
+    links = []; const seen = new Set();
+    const add = (a, b, ghost) => {
+      if (!a || !b || a === b) return;
+      const key = [a.id, b.id].sort().join("|"); if (seen.has(key)) return; seen.add(key);
+      links.push({ a, b, ghost, phase: Math.random() });
+    };
+    for (const l of data.links) {
+      const ba = byId(l.a), bb = byId(l.b); if (!ba || !bb || ba.retired || bb.retired) continue;
+      const ga = groupOf(ba), gb = groupOf(bb); if (!ga || !gb) continue;
+      const na = nodeMap.get(l.a), nb = nodeMap.get(l.b);
+      if (na && nb) add(na, nb, ga !== gb);
+      else if (na && ga !== gb) add(na, nodeMap.get(gb.id), true);
+      else if (nb && ga !== gb) add(nb, nodeMap.get(ga.id), true);
+      else if (ga !== gb) add(nodeMap.get(ga.id), nodeMap.get(gb.id), false);
+    }
+    for (const n of nodes) n.related = new Set(n.parent ? [n.parent.id] : []);
+    for (const n of nodes) if (n.parent) n.parent.related.add(n.id);
+    for (const l of links) { l.a.related.add(l.b.id); l.b.related.add(l.a.id); }
+    for (const n of nodes) n.el.classList.toggle("sel", n.id === selected);
+    for (const n of nodes) if (n.kind === "group") n.el.classList.toggle("open", expanded.has(n.id));
+    relayout(true);
+    paintLive();
+  }
   function build() {
     document.getElementById("live").classList.toggle("off", !data.runner.running);
-    const center = { id: "all", color: COLORS.core, pts: makeSphere(innerWidth < 600 ? 900 : 1500), related: new Set(), phase: 0 };
-    nodes = [center];
-    const sorted = [...data.bots];
     document.getElementById("botCount").textContent = data.bots.length;
-    for (const b of sorted) {
-      const holding = b.status === "holding";
-      nodes.push({ id: b.name, bot: b, color: COLORS.fine, mood: "fine", related: new Set(["all"]),
-        pts: makeSpiral((innerWidth < 600 ? 340 : 560) * (holding ? 1.25 : 1), b.rule === "regime" ? 3 : 2),
-        tilt: rand(0, Math.PI * 2), phase: Math.random() });
-    }
-    links = data.links.map(l => ({ a: nodes.find(n => n.id === l.a), b: nodes.find(n => n.id === l.b), phase: Math.random() })).filter(l => l.a && l.b);
-    for (const l of links) { l.a.related.add(l.b.id); l.b.related.add(l.a.id); }
-    for (const n of nodes.slice(1)) center.related.add(n.id);
-    nodesEl.innerHTML = "";
-    for (const n of nodes) {
-      const el = document.createElement("button");
-      el.type = "button"; el.className = "node" + (n.id === "all" ? " center" : "");
-      el.setAttribute("aria-label", n.id === "all" ? "All bots summary" : `${titleOf(n.bot)}, ${statusText(n.bot)}`);
-      el.innerHTML = `<span class="tag"><span class="nm">${n.id === "all" ? "" : `<svg class="flame" hidden viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>`}${esc(n.id === "all" ? "All bots" : `${n.bot.asset_name || n.id}`)}${n.id === "all" ? "" : ` <span class="v">v${esc(n.bot.version || 1)}</span>`}</span>${n.id === "all" ? "" : `<span class="st">${esc(n.bot.strategy || "")}</span>`}<span class="ch"></span></span>`;
-      el.addEventListener("click", () => select(n.id));
-      n.el = el; nodesEl.appendChild(el);
-    }
-    layout();
+    makeGroups();
+    for (const n of nodeMap.values()) n.el.remove();
+    nodeMap.clear(); nodes = [];
+    syncNodes();
     const keep = selected;
     selected = null;
     select(keep || location.hash.slice(1) || "all", true);
@@ -783,13 +1170,17 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   async function refresh() {
     let d; try { d = await loadData(); } catch (e) { paintLive(); return; }
     if (d.generated === data.generated) { paintLive(); return; }
-    const before = selected && selected !== "all" ? botKey(byId(selected)) : null;
+    const before = selected && byId(selected) ? botKey(byId(selected)) : null;
     const statusChanged = d.bots.some(b => { const o = data.bots.find(x => x.name === b.name); return !o || o.status !== b.status; });
     data = d;
-    if (statusChanged) { build(); return; }
-    for (const n of nodes.slice(1)) n.bot = byId(n.id);
+    makeGroups();
+    const countChanged = data.bots.length !== nodes.filter(n => n.kind === "bot").length + groups.filter(g => !expanded.has(g.id)).reduce((s, g) => s + g.bots.length, 0);
+    for (const n of nodes) { if (n.kind === "bot") n.bot = byId(n.id) || n.bot; if (n.kind === "group") n.group = groupById(n.id) || n.group; }
+    if (countChanged) syncNodes(); else if (statusChanged) relayout(false);
     document.getElementById("live").classList.toggle("off", !data.runner.running);
-    if (selected === "all") { const p = document.getElementById("panel"), y = p.scrollTop; renderAll(); p.scrollTop = y; }
+    const p = document.getElementById("panel"), y = p.scrollTop;
+    if (selected === "all") { renderAll(); p.scrollTop = y; }
+    else if (groupById(selected)) { /* keep the chart; numbers update live */ }
     else if (selected && botKey(byId(selected)) !== before) renderBot(byId(selected));
     paintLive();
   }
