@@ -1,0 +1,804 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bot Universe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Watch a team of practice trading bots race with fake money, live.">
+<meta property="og:title" content="Bot Universe">
+<meta property="og:description" content="Watch a team of practice trading bots race with fake money, live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a living star map on the left (center core + 9 bot galaxies), a reading panel on the right; stacked on phones. Single deliberate dark "deep space" look. */
+:root {
+  --void: #05060d;
+  --ink: #e9ecff;
+  --dim: #8c93b6;
+  --faint: #5a6086;
+  --line: rgba(150, 165, 255, 0.14);
+  --panel: rgba(9, 11, 24, 0.86);
+  --raise: rgba(255, 255, 255, 0.04);
+  --gold: #f6b94c;
+  --cyan: #63d6ff;
+  --core: #b8a4ff;
+  --up: #4fe3a1;
+  --down: #ff6b7d;
+  --warn: #ffc857;
+  --display: "Michroma", "Eurostile", "Arial Black", sans-serif;
+  --body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--void); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.5; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr) 410px; height: 100%; }
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.masthead { position: absolute; top: 18px; left: max(20px, env(safe-area-inset-left, 0px)); z-index: 3; pointer-events: none; display: grid; gap: 6px; }
+.masthead h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: 0.32em; text-transform: uppercase; }
+.masthead p { margin: 0; color: var(--dim); font-size: 12px; }
+.live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.live i { width: 7px; height: 7px; border-radius: 50%; background: var(--up); box-shadow: 0 0 10px var(--up); }
+.live.off i { background: var(--down); box-shadow: 0 0 10px var(--down); }
+.hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 3; color: var(--faint); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; pointer-events: none; white-space: nowrap; }
+
+.node { position: absolute; z-index: 2; border-radius: 50%; border: 0; background: transparent; cursor: pointer; padding: 0; }
+.node:focus-visible { outline: 1px dashed var(--ink); outline-offset: 6px; }
+.node .tag { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); display: grid; justify-items: center; gap: 1px; white-space: nowrap; pointer-events: none; }
+.node .nm { font-family: var(--display); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); text-shadow: 0 0 8px var(--void), 0 0 2px var(--void); }
+.node .ch { font-family: var(--mono); font-size: 11px; text-shadow: 0 0 6px var(--void); }
+.node .v { text-transform: none; letter-spacing: 0.04em; }
+.node .st { font-size: 10px; color: var(--dim); text-shadow: 0 0 6px var(--void), 0 0 2px var(--void); }
+.node.center .tag { top: 50%; transform: translate(-50%, -50%); }
+.node.center .nm { font-size: 11px; letter-spacing: 0.34em; }
+.node:hover .nm, .node.sel .nm { color: #fff; }
+
+.panel { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; min-width: 0; backdrop-filter: blur(10px); }
+.panel-in { padding-block: 26px 40px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+.eyebrow { font-family: var(--display); font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--dim); display: flex; gap: 10px; align-items: center; }
+.eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; }
+h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: 0.08em; text-wrap: balance; }
+.lede { margin: 0; color: var(--dim); max-width: 62ch; }
+.big { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.big b { font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
+.big span { font-size: 14px; }
+.up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--dim); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; border: 1px solid var(--line); background: var(--raise); white-space: nowrap; }
+.chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip.holding { color: var(--up); } .chip.cash { color: var(--dim); } .chip.stopped { color: var(--warn); }
+.sec { display: grid; gap: 10px; }
+.sec h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim); }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.facts div { background: var(--void); padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.facts dt { color: var(--faint); font-size: 11px; }
+.facts dd { margin: 0; font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.rank { display: grid; gap: 2px; }
+.rank button { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto 64px; gap: 10px; align-items: center; padding: 8px 8px; border: 0; border-radius: 8px; background: transparent; text-align: left; cursor: pointer; }
+.rank button:hover, .rank button:focus-visible { background: var(--raise); outline: none; }
+.rank .n { font-family: var(--mono); color: var(--faint); font-size: 11px; }
+.rank .who { display: grid; min-width: 0; }
+.rank .who b { font-weight: 600; font-size: 13px; }
+.rank .who small { color: var(--faint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank .pct { font-family: var(--mono); font-size: 12.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.bar { height: 4px; border-radius: 2px; background: var(--line); position: relative; overflow: hidden; }
+.bar i { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.trades { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.trades td, .trades th { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+.trades th { color: var(--faint); font-weight: 500; font-size: 11px; }
+.trades td.num { font-family: var(--mono); text-align: right; }
+.tw { overflow-x: auto; }
+.links { display: grid; gap: 6px; }
+.links button { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--raise); cursor: pointer; }
+.links button:hover, .links button:focus-visible { border-color: var(--core); outline: none; }
+.links b { font-family: var(--display); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 400; }
+.links span { color: var(--dim); font-size: 12.5px; }
+.back { justify-self: start; border: 0; background: transparent; color: var(--dim); cursor: pointer; padding: 0; font-size: 12.5px; }
+.back:hover, .back:focus-visible { color: var(--ink); outline: none; }
+.spark { width: 100%; height: auto; display: block; }
+.note { color: var(--faint); font-size: 12px; margin: 0; }
+.report { white-space: pre-wrap; font-size: 12.5px; color: var(--dim); background: var(--raise); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; max-height: 320px; overflow: auto; margin: 0; font-family: var(--body); }
+.report strong { color: var(--ink); }
+.foot { color: var(--faint); font-size: 11.5px; border-top: 1px solid var(--line); padding-top: 14px; margin: 0; }
+.err { color: var(--down); }
+
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tabs button { border: 1px solid var(--line); background: transparent; color: var(--dim); border-radius: 999px; padding: 4px 11px; font-size: 12px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--raise); color: var(--ink); border-color: rgba(184, 164, 255, 0.5); }
+.tabs button:focus-visible { outline: 1px dashed var(--ink); outline-offset: 2px; }
+.chart { height: 280px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: rgba(0, 0, 0, 0.25); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: var(--dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 2px; border-radius: 1px; }
+.next { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid rgba(184, 164, 255, 0.35); border-radius: 10px; background: rgba(184, 164, 255, 0.07); }
+.next span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--core); }
+.next p { margin: 0; color: var(--ink); }
+@keyframes blink { from { background: rgba(255, 255, 255, 0.12); } to { background: transparent; } }
+.blink { animation: blink 0.9s ease-out; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+
+.moods { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 10.5px; color: var(--dim); margin-top: 2px; }
+.moods span { display: inline-flex; align-items: center; gap: 5px; }
+.moods i { width: 7px; height: 7px; border-radius: 50%; }
+.flame { width: 9px; height: 12px; flex: none; }
+.node .nm { display: inline-flex; align-items: center; gap: 4px; }
+.eli5 { display: grid; gap: 6px; padding: 12px 14px; border-radius: 10px; background: rgba(246, 185, 76, 0.07); border: 1px solid rgba(246, 185, 76, 0.28); }
+.eli5 > span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.eli5 p { margin: 0; font-size: 14px; color: var(--ink); max-width: 62ch; }
+.eli5 b { color: var(--gold); font-weight: 600; }
+.toprow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.share { border: 1px solid var(--line); background: var(--raise); border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--ink); cursor: pointer; justify-self: start; }
+.share:hover, .share:focus-visible { border-color: var(--core); outline: none; }
+.sharebox { width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--void); color: var(--ink); font-family: var(--mono); font-size: 12px; }
+
+@media (max-width: 860px) {
+  html, body { height: auto; }
+  .app { display: block; height: auto; }
+  .stage { height: 82vh; min-height: 560px; max-height: 760px; }
+  .node .nm { font-size: 8.5px; letter-spacing: 0.14em; }
+  .node .ch { font-size: 10px; }
+  .node .st { font-size: 9px; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); backdrop-filter: none; background: var(--void); }
+  .hint { display: none; }
+}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <div class="masthead">
+      <h1>Bot Universe</h1>
+      <p><span id="botCount">Practice</span> trading bots · fake money · tap a universe to look inside</p>
+      <span class="live" id="live"><i></i><span id="liveText">Loading…</span></span>
+      <div class="moods" aria-label="Color key"><span><i style="background:#f6b94c;box-shadow:0 0 8px #f6b94c"></i>Doing fine</span><span><i style="background:#4fb8ff;box-shadow:0 0 8px #4fb8ff"></i>Making money (+1% or more)</span><span><svg class="flame" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>Losing money (−1% or more)</span></div>
+    </div>
+    <div id="nodes"></div>
+  </div>
+  <aside class="panel" id="panel" aria-live="polite">
+    <div class="panel-in" id="panelIn"><p class="note">Loading the bots…</p></div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+<script>
+(() => {
+  const COLORS = { fine: "#f6b94c", up: "#4fb8ff", down: "#ff5a3c", core: "#b8a4ff", crypto: "#f6b94c", stock: "#63d6ff" };
+  const GOOD = 0.01;   // +1% = making money (blue), -1% = losing money (red, on fire), in between = fine (gold)
+  const moodOf = c => c >= GOOD ? "up" : c <= -GOOD ? "down" : "fine";
+  // Ring order keeps related bots next to each other.
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const stage = document.getElementById("stage");
+  const cv = document.getElementById("sky");
+  const ctx = cv.getContext("2d");
+  const nodesEl = document.getElementById("nodes");
+  const panelIn = document.getElementById("panelIn");
+  let data = null, nodes = [], links = [], W = 0, H = 0, dpr = 1, stars = null, selected = null;
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = v => "$" + Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toFixed(2) + "%";
+  const tone = v => v > 0.00005 ? "up" : v < -0.00005 ? "down" : "flat";
+  const et = iso => new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) + " ET";
+  const barName = b => ({ "1h": "hourly prices", "4h": "4-hour prices", "1d": "daily prices" }[b] || b);
+  const statusText = b => b.status === "holding" ? `Holding ${b.symbol.replace("/USD", "")}` : b.status === "stopped" ? "Paused after stop-loss" : "Waiting in cash";
+
+  // ---------- particles ----------
+  function sprite(color, size) {
+    const c = document.createElement("canvas"); c.width = c.height = size;
+    const g = c.getContext("2d"), r = size / 2;
+    const grd = g.createRadialGradient(r, r, 0, r, r, r);
+    grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.25, color); grd.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = grd; g.fillRect(0, 0, size, size); return c;
+  }
+  const SPRITES = {};
+  for (const [k, v] of Object.entries(COLORS)) SPRITES[k] = sprite(v, 64);
+  SPRITES.white = sprite("#ffffff", 32);
+  SPRITES.flame = sprite("#ff7a2e", 32);
+  SPRITES.ember = sprite("#ffd166", 32);
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  function gauss() { return (Math.random() + Math.random() + Math.random() - 1.5) / 1.5; }
+
+  function makeSphere(n) {   // the central "all bots" orb: a shell of points with swirling filaments
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2;
+      const shell = i % 3 === 0 ? rand(0.2, 0.95) : rand(0.82, 1.0);
+      const s = Math.sqrt(1 - u * u);
+      pts.push({ x: s * Math.cos(th) * shell, y: u * shell, z: s * Math.sin(th) * shell, a: rand(0.25, 0.9), w: Math.random() < 0.08 ? 1 : 0 });
+    }
+    for (let f = 0; f < 5; f++) {   // filaments
+      const ax = rand(0, Math.PI * 2), tilt = rand(-1, 1);
+      for (let i = 0; i < 90; i++) {
+        const t = i / 90 * Math.PI * 2, r = 0.55 + 0.25 * Math.sin(t * 3 + f);
+        pts.push({ x: Math.cos(t + ax) * r, y: Math.sin(t) * tilt * r, z: Math.sin(t + ax) * r, a: 0.9, w: 1 });
+      }
+    }
+    return pts;
+  }
+  function makeSpiral(n, arms) {   // a face-on spiral galaxy: bright core, curved arms, soft haze
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const kind = Math.random();
+      if (kind < 0.18) {             // core bulge
+        const r = Math.abs(gauss()) * 0.22;
+        pts.push({ r, th: Math.random() * Math.PI * 2, a: rand(0.5, 1), w: 1 });
+      } else if (kind < 0.38) {      // faint disk haze between the arms
+        const r = Math.sqrt(Math.random()) * 0.95;
+        pts.push({ r, th: Math.random() * Math.PI * 2, a: rand(0.1, 0.35), w: 0 });
+      } else {                       // the arms
+        const r = 0.12 + Math.pow(Math.random(), 0.8) * 0.88;
+        const arm = (i % arms) / arms * Math.PI * 2;
+        const th = arm + Math.log(1 + r * 6) * 1.9 + gauss() * 0.22 * (0.6 + r);
+        pts.push({ r, th, a: rand(0.35, 1) * (1 - r * 0.45), w: Math.random() < 0.05 ? 1 : 0 });
+      }
+    }
+    return pts;
+  }
+
+  // ---------- layout ----------
+  function layout() {
+    const rect = stage.getBoundingClientRect();
+    W = Math.max(1, rect.width); H = Math.max(1, rect.height); dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    stars = document.createElement("canvas"); stars.width = W * dpr; stars.height = H * dpr;
+    const s = stars.getContext("2d"); s.scale(dpr, dpr);
+    for (let i = 0; i < W * H / 2600; i++) {
+      s.fillStyle = `rgba(${200 + Math.random() * 55},${205 + Math.random() * 50},255,${rand(0.08, 0.6)})`;
+      const z = Math.random() < 0.06 ? 1.6 : 0.9; s.fillRect(Math.random() * W, Math.random() * H, z, z);
+    }
+    if (!data) return;
+    const narrow = W < 600;
+    const top = narrow ? document.querySelector(".masthead").offsetHeight + 26 : 0;
+    const h = H - top, base = Math.min(W, h);
+    const cx = W / 2, cy = top + h / 2 + (narrow ? 0 : 8);
+    const centerR = base * (narrow ? 0.17 : 0.15);
+    const botR = Math.max(20, base * (narrow ? 0.068 : 0.082));
+    const rx = Math.max(centerR + botR * 2.2, W / 2 - botR * (narrow ? 2.4 : 1.9));
+    const ry = Math.max(centerR + botR * 1.6, h / 2 - botR * 2.3);
+    for (const n of nodes) {
+      if (n.id === "all") { n.x = cx; n.y = cy; n.r = centerR; continue; }
+      const i = nodes.indexOf(n) - 1, k = nodes.length - 1;
+      const ang = -Math.PI / 2 + (i / k) * Math.PI * 2 + 0.18;
+      n.x = cx + Math.cos(ang) * rx; n.y = cy + Math.sin(ang) * ry * 0.92;
+      n.r = botR * (n.bot.status === "holding" ? 1.08 : 0.94);
+    }
+    for (const n of nodes) {
+      const el = n.el, hit = n.r * (n.id === "all" ? 1.1 : 1.25);
+      el.style.left = (n.x - hit) + "px"; el.style.top = (n.y - hit) + "px";
+      el.style.width = el.style.height = hit * 2 + "px";
+    }
+  }
+
+  // ---------- drawing ----------
+  function curve(a, b) {   // quadratic control point pulled toward the center
+    const c = nodes[0], mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    return { cx: mx + (c.x - mx) * 0.38, cy: my + (c.y - my) * 0.38 };
+  }
+  function qpt(a, k, b, t) { const u = 1 - t; return { x: u * u * a.x + 2 * u * t * k.cx + t * t * b.x, y: u * u * a.y + 2 * u * t * k.cy + t * t * b.y }; }
+
+  function draw(t) {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#05060d"; ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(stars, 0, 0, W, H);
+    if (!data) return;
+    const center = nodes[0];
+    ctx.globalCompositeOperation = "lighter";
+
+    // nebula haze behind the core
+    const neb = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, center.r * 3.2);
+    neb.addColorStop(0, "rgba(120,100,255,0.16)"); neb.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = neb; ctx.fillRect(0, 0, W, H);
+
+    const focus = selected === "all" ? null : selected;
+    // spokes: every bot reports to the core
+    for (const n of nodes.slice(1)) {
+      const on = !focus || focus === n.id;
+      const g = ctx.createLinearGradient(center.x, center.y, n.x, n.y);
+      g.addColorStop(0, `rgba(184,164,255,${on ? 0.35 : 0.08})`); g.addColorStop(1, n.color + (on ? "55" : "12"));
+      ctx.strokeStyle = g; ctx.lineWidth = on ? 1.4 : 0.8;
+      ctx.beginPath(); ctx.moveTo(center.x, center.y); ctx.lineTo(n.x, n.y); ctx.stroke();
+      if (!reduce) {
+        const p = ((t / 2600 + n.phase) % 1);
+        const x = n.x + (center.x - n.x) * p, y = n.y + (center.y - n.y) * p;
+        ctx.globalAlpha = on ? 0.9 : 0.25; ctx.drawImage(SPRITES.core, x - 6, y - 6, 12, 12); ctx.globalAlpha = 1;
+      }
+    }
+    // links between related bots
+    for (const L of links) {
+      const on = !focus || focus === L.a.id || focus === L.b.id;
+      const k = curve(L.a, L.b);
+      ctx.strokeStyle = on ? (focus ? "rgba(255,255,255,0.55)" : "rgba(200,190,255,0.28)") : "rgba(200,190,255,0.06)";
+      ctx.lineWidth = on && focus ? 1.6 : 1;
+      ctx.beginPath(); ctx.moveTo(L.a.x, L.a.y); ctx.quadraticCurveTo(k.cx, k.cy, L.b.x, L.b.y); ctx.stroke();
+      if (!reduce && on) {
+        for (let j = 0; j < 2; j++) {
+          const p = (t / 4200 + L.phase + j / 2) % 1, q = qpt(L.a, k, L.b, p);
+          ctx.globalAlpha = focus ? 1 : 0.6; ctx.drawImage(SPRITES.white, q.x - 5, q.y - 5, 10, 10); ctx.globalAlpha = 1;
+        }
+      }
+    }
+
+    // galaxies
+    for (const n of nodes) {
+      const dimmed = focus && focus !== n.id && !n.related.has(focus);
+      const sel = selected === n.id;
+      const glow = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 1.5);
+      glow.addColorStop(0, n.color + (dimmed ? "22" : "66")); glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.5, 0, Math.PI * 2); ctx.fill();
+      const fade = dimmed ? 0.3 : 1;
+      if (n.id === "all") {
+        const rot = reduce ? 0.6 : t / 9000, cr = Math.cos(rot), sr = Math.sin(rot);
+        const tilt = 0.35, ct = Math.cos(tilt), st = Math.sin(tilt);
+        for (const p of n.pts) {
+          let x = p.x * cr - p.z * sr, z = p.x * sr + p.z * cr;
+          let y = p.y * ct - z * st; z = p.y * st + z * ct;
+          const depth = (z + 1.2) / 2.2;
+          ctx.globalAlpha = p.a * depth * fade;
+          ctx.fillStyle = p.w ? "#ffffff" : n.color;
+          const s = p.w ? 1.8 : 1.4;
+          ctx.fillRect(n.x + x * n.r - s / 2, n.y + y * n.r - s / 2, s, s);
+        }
+        ctx.globalAlpha = 0.9 * fade;
+        ctx.drawImage(SPRITES.core, n.x - n.r * 0.5, n.y - n.r * 0.5, n.r, n.r);
+      } else {
+        // Face-on, spinning as one piece (holding bots spin a bit faster).
+        const speed = n.bot.status === "holding" ? 0.32 : 0.16;
+        const spin = reduce ? n.tilt : n.tilt - t / 1000 * speed;
+        const alive = n.bot.status === "holding" ? 1 : 0.75;
+        for (const p of n.pts) {
+          const th = p.th + spin;
+          ctx.globalAlpha = p.a * fade * alive;
+          ctx.fillStyle = p.w ? "#ffffff" : n.color;
+          const s = p.w ? 1.6 : 1.25;
+          ctx.fillRect(n.x + Math.cos(th) * p.r * n.r - s / 2, n.y + Math.sin(th) * p.r * n.r - s / 2, s, s);
+        }
+        ctx.globalAlpha = fade;
+        ctx.drawImage(SPRITES.white, n.x - n.r * 0.35, n.y - n.r * 0.35, n.r * 0.7, n.r * 0.7);
+        if (n.mood === "up") {          // making money: a soft blue pulse
+          const pulse = reduce ? 0.35 : 0.25 + 0.18 * Math.sin(t / 450 + n.phase * 6);
+          const g2 = ctx.createRadialGradient(n.x, n.y, n.r * 0.2, n.x, n.y, n.r * 1.9);
+          g2.addColorStop(0, `rgba(79,184,255,${pulse * fade})`); g2.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.globalAlpha = 1; ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.9, 0, Math.PI * 2); ctx.fill();
+        }
+        if (n.mood === "down") {        // losing money: it's on fire
+          n.flames = n.flames || [];
+          if (!reduce) for (let k = 0; k < 2; k++) n.flames.push({ x: rand(-0.55, 0.55) * n.r, y: rand(-0.1, 0.35) * n.r, vy: rand(0.35, 0.9), life: 1, s: rand(7, 14) });
+          else if (!n.flames.length) for (let k = 0; k < 24; k++) n.flames.push({ x: rand(-0.5, 0.5) * n.r, y: rand(-0.9, 0.3) * n.r, vy: 0, life: rand(0.3, 1), s: rand(7, 13) });
+          for (const f of n.flames) {
+            if (!reduce) { f.y -= f.vy * n.r * 0.035; f.x *= 0.985; f.life -= 0.022; }
+            const sz = f.s * (0.4 + f.life);
+            ctx.globalAlpha = Math.max(0, f.life) * fade;
+            ctx.drawImage(f.life > 0.6 ? SPRITES.ember : SPRITES.flame, n.x + f.x - sz / 2, n.y + f.y - sz / 2, sz, sz);
+          }
+          if (!reduce) n.flames = n.flames.filter(f => f.life > 0).slice(-90);
+        } else if (n.flames) n.flames = null;
+      }
+      ctx.globalAlpha = 1;
+      if (sel) {   // selection ring
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 1; ctx.setLineDash([3, 6]);
+        ctx.lineDashOffset = reduce ? 0 : -t / 60;
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r * 1.32, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+        ctx.globalCompositeOperation = "lighter";
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+  }
+  function loop(t) {
+    try { draw(t); } catch (e) { console.error(e); }
+    if (!reduce) requestAnimationFrame(loop);
+  }
+
+  // ---------- live data ----------
+  const SITE = location.hostname.endsWith("github.io");
+  const RAW = "https://raw.githubusercontent.com/Crybabyman/bot-universe/data/data.json";
+  const live = {};                       // symbol -> live price (Bitcoin from Coinbase)
+  let liveOk = false;
+  const priceOf = sym => live[sym] ?? data.prices[sym];
+  const valueOf = b => b.cash + b.qty * priceOf(b.symbol);
+  const changeOf = b => valueOf(b) / data.budget_each - 1;
+  const totalOf = () => data.bots.reduce((s, b) => s + valueOf(b), 0);
+  const signed = v => (v >= 0 ? "+" : "−") + money(Math.abs(v));
+  const coin = s => s.replace("/USD", "");
+
+  async function loadData() {
+    const urls = SITE ? [RAW + "?t=" + Math.floor(Date.now() / 60000), "data.json"] : ["data.json"];
+    for (const u of urls) {
+      try { const r = await fetch(u, { cache: "no-store" }); if (r.ok) return await r.json(); } catch (e) { /* try next */ }
+    }
+    throw new Error("no data");
+  }
+  async function tick() {
+    try {
+      const syms = [...new Set(data.bots.filter(b => b.asset === "crypto").map(b => b.symbol))];
+      await Promise.all(syms.map(async sym => {
+        const r = await fetch(`https://api.exchange.coinbase.com/products/${sym.replace("/", "-")}/ticker`, { cache: "no-store" });
+        const p = parseFloat((await r.json()).price);
+        if (p > 0) { live[sym] = p; liveOk = true; }
+      }));
+      paintLive(); chartTick();
+    } catch (e) { liveOk = false; }
+  }
+  function paintLive() {
+    if (!data) return;
+    for (const n of nodes) {
+      const ch = n.id === "all" ? totalOf() / data.total.start - 1 : changeOf(n.bot);
+      const el = n.el && n.el.querySelector(".ch");
+      if (el) { el.textContent = pct(ch); el.className = "ch " + tone(ch); }
+      if (n.id !== "all") {
+        n.mood = moodOf(ch); n.color = COLORS[n.mood];
+        const fl = n.el && n.el.querySelector(".flame"); if (fl) fl.hidden = n.mood !== "down";
+      }
+    }
+    for (const el of panelIn.querySelectorAll("[data-live]")) {
+      const [kind, id] = el.dataset.live.split("|");
+      const b = id && kind !== "price" ? byId(id) : null;
+      let text = "", cls = null;
+      if (kind === "price") text = money(priceOf(id));
+      else if (kind === "total") text = money(totalOf());
+      else if (kind === "totalchange") { const c = totalOf() / data.total.start - 1; text = pct(c); cls = tone(c); }
+      else if (kind === "value") text = money(valueOf(b));
+      else if (kind === "change") { const c = changeOf(b); text = pct(c); cls = tone(c); }
+      else if (kind === "pl") { const p = priceOf(b.symbol), c = p / b.entry - 1; text = `${pct(c)} (${signed(b.qty * (p - b.entry))})`; cls = tone(c); }
+      else if (kind === "stopgap") { const c = priceOf(b.symbol) / b.plan.stop_price - 1; text = `${pct(c)} above it`; cls = c < 0.015 ? "down" : "flat"; }
+      if (el.textContent !== text) { el.textContent = text; el.classList.remove("blink"); void el.offsetWidth; el.classList.add("blink"); }
+      if (cls) { el.classList.remove("up", "down", "flat"); el.classList.add(cls); }
+    }
+    const lt = document.getElementById("liveText");
+    if (lt) lt.textContent = statusLine();
+  }
+  function statusLine() {
+    const age = (Date.now() - new Date(data.generated)) / 60000;
+    if (age > 20) return `Bot data is ${Math.round(age)} min old · the bot computer may be off`;
+    return (data.runner.running ? "Bots running" : "Bots not running") + (liveOk ? " · live prices" : "") + " · data " + et(data.generated);
+  }
+
+  // ---------- charts ----------
+  let chart = null, mainSeries = null, chartKind = null, chartMode = "bot";
+  async function coinbase(sym, gran, count) {
+    const CB = `https://api.exchange.coinbase.com/products/${sym.replace("/", "-")}/candles`;
+    let end = Math.floor(Date.now() / 1000); const rows = [];
+    for (let page = 0; page < 5 && rows.length < count; page++) {
+      const start = end - gran * 300;
+      const r = await fetch(`${CB}?granularity=${gran}&start=${new Date(start * 1000).toISOString()}&end=${new Date(end * 1000).toISOString()}`);
+      const a = await r.json(); if (!Array.isArray(a) || !a.length) break;
+      rows.push(...a); end = start;
+    }
+    const m = new Map();
+    for (const [t, l, h, o, c] of rows) m.set(t, { time: t, open: o, high: h, low: l, close: c });
+    return [...m.values()].sort((a, b) => a.time - b.time).slice(-count);
+  }
+  function group(c, secs) {
+    const out = [];
+    for (const k of c) {
+      const t = Math.floor(k.time / secs) * secs, last = out[out.length - 1];
+      if (last && last.time === t) { last.high = Math.max(last.high, k.high); last.low = Math.min(last.low, k.low); last.close = k.close; }
+      else out.push({ ...k, time: t });
+    }
+    return out;
+  }
+  function sma(rows, n, key) {
+    const out = []; let s = 0;
+    for (let i = 0; i < rows.length; i++) {
+      s += rows[i][key]; if (i >= n) s -= rows[i - n][key];
+      if (i >= n - 1) out.push({ time: rows[i].time, value: s / n });
+    }
+    return out;
+  }
+  const MODES = b => b.asset === "crypto"
+    ? [["bot", b.rule === "hold" ? "Last 10 days" : `Bot's view (${barName(b.bar)})`], ["24h", "Last 24 hours"]]
+    : [["bot", "Last year (daily)"], ["today", "Recent days (15-min)"]];
+
+  async function mountChart(b) {
+    const box = document.getElementById("chart");
+    if (chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
+    if (!box) return;
+    const legend = document.getElementById("chartLegend");
+    if (!window.LightweightCharts) { box.innerHTML = `<p class="note" style="padding:12px">Charts couldn't load here.</p>`; return; }
+    box.innerHTML = `<p class="note" style="padding:12px">Loading chart…</p>`;
+    const mode = chartMode, isCandle = b.asset === "crypto", key = isCandle ? "close" : "value";
+    let rows;
+    try {
+      if (b.asset === "crypto") {
+        if (mode === "24h") rows = await coinbase(b.symbol, 300, 288);
+        else if (b.rule === "hold") rows = await coinbase(b.symbol, 3600, 240);
+        else if (b.bar === "1h") rows = await coinbase(b.symbol, 3600, 300);
+        else if (b.bar === "4h") rows = group(await coinbase(b.symbol, 3600, 1200), 14400).slice(-300);
+        else rows = await coinbase(b.symbol, 86400, 300);
+      } else {
+        const src = (data.charts[b.symbol] || {})[mode === "today" ? "15m" : "1d"] || [];
+        rows = src.map(([t, v]) => ({ time: t, value: v }));
+      }
+    } catch (e) { rows = null; }
+    if (b.name !== selected || mode !== chartMode || chart) return;   // the viewer moved on while loading
+    if (!rows || !rows.length) {
+      box.innerHTML = `<p class="note" style="padding:12px">${b.asset === "crypto" ? "Live crypto charts need the website version of this page." : "No chart data yet."}</p>`;
+      return;
+    }
+    box.innerHTML = "";
+    chart = LightweightCharts.createChart(box, {
+      autoSize: true,
+      layout: { background: { type: "solid", color: "transparent" }, textColor: "#8c93b6", fontFamily: "JetBrains Mono, monospace", fontSize: 10 },
+      grid: { vertLines: { color: "rgba(150,165,255,0.06)" }, horzLines: { color: "rgba(150,165,255,0.06)" } },
+      rightPriceScale: { borderColor: "rgba(150,165,255,0.14)" },
+      timeScale: { borderColor: "rgba(150,165,255,0.14)", timeVisible: !(mode === "bot" && (b.bar === "1d" || b.asset === "stock")) },
+      localization: { priceFormatter: p => "$" + p.toLocaleString("en-US", { maximumFractionDigits: p < 1000 ? 2 : 0 }) },
+      handleScroll: { vertTouchDrag: false },
+    });
+    const color = COLORS[b.asset];
+    if (isCandle) {
+      mainSeries = chart.addCandlestickSeries({ upColor: "#4fe3a1", downColor: "#ff6b7d", wickUpColor: "#4fe3a1", wickDownColor: "#ff6b7d", borderVisible: false });
+    } else {
+      mainSeries = chart.addAreaSeries({ lineColor: color, topColor: color + "44", bottomColor: color + "00", lineWidth: 2 });
+    }
+    mainSeries.setData(rows);
+    chartKind = { candle: isCandle, symbol: b.symbol };
+    const plan = b.plan || {}, keys = [];
+    if (mode === "bot" && ["ma", "ma_trend", "regime"].includes(b.rule)) {
+      const fl = plan.chart_lines || [];
+      chart.addLineSeries({ color: "#ffffff", lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(sma(rows, b.fast || 20, key));
+      chart.addLineSeries({ color: "#b8a4ff", lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(sma(rows, b.slow || 50, key));
+      keys.push(["#ffffff", (fl[0] || {}).label || "fast average"], ["#b8a4ff", (fl[1] || {}).label || "slow average"]);
+    }
+    if (mode === "bot" && b.rule === "above_ma" && rows.length >= 200) {
+      chart.addLineSeries({ color: "#b8a4ff", lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }).setData(sma(rows, 200, key));
+      keys.push(["#b8a4ff", "200-day average"]);
+    }
+    if (mode === "bot" && b.rule !== "above_ma") {
+      for (const l of (plan.chart_lines || []).filter(l => /200-day/.test(l.label))) {
+        mainSeries.createPriceLine({ price: l.value, color: "#63d6ff", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "200-day avg" });
+        keys.push(["#63d6ff", `200-day average ${money(l.value)}`]);
+      }
+    }
+    if (b.qty > 0 && b.entry) {
+      mainSeries.createPriceLine({ price: b.entry, color: "#f6b94c", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "bought" });
+      keys.push(["#f6b94c", `bought at ${money(b.entry)}`]);
+    }
+    if (plan.stop_price) {
+      mainSeries.createPriceLine({ price: plan.stop_price, color: "#ff6b7d", lineWidth: 1, lineStyle: 2, axisLabelVisible: true, title: "stop-loss" });
+      keys.push(["#ff6b7d", `stop-loss at ${money(plan.stop_price)}`]);
+    }
+    const first = rows[0].time, times = rows.map(r => r.time);
+    const marks = b.trades.map(t => {
+      const ts = Math.floor(new Date(t.time) / 1000);
+      if (ts < first) return null;
+      let bar = times[0]; for (const x of times) { if (x <= ts) bar = x; else break; }
+      return { time: bar, position: t.side === "buy" ? "belowBar" : "aboveBar", color: t.side === "buy" ? "#4fe3a1" : "#ff6b7d", shape: t.side === "buy" ? "arrowUp" : "arrowDown", text: t.side === "buy" ? "BUY" : "SELL" };
+    }).filter(Boolean).sort((a, b) => a.time - b.time);
+    if (marks.length) { mainSeries.setMarkers(marks); keys.push(["#4fe3a1", "arrows = this bot's trades"]); }
+    chart.timeScale().fitContent();
+    if (legend) legend.innerHTML = keys.map(([c, t]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join("");
+  }
+  function chartTick() {
+    if (!mainSeries || !chartKind || !chartKind.candle) return;
+    const p = live[chartKind.symbol]; if (!p) return;
+    try {
+      const d = mainSeries.data(); const last = d[d.length - 1]; if (!last) return;
+      mainSeries.update({ time: last.time, open: last.open, high: Math.max(last.high, p), low: Math.min(last.low, p), close: p });
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---------- panel ----------
+  const byId = id => data.bots.find(b => b.name === id);
+  function chip(b) { return `<span class="chip ${b.status}"><i></i>${esc(statusText(b))}</span>`; }
+  function spark(hist) {
+    if (!hist || hist.length < 2) return `<p class="note">The value chart fills in as the bot keeps running.</p>`;
+    const vals = hist.map(h => h[1]), times = hist.map(h => +new Date(h[0]));
+    let lo = Math.min(1000, ...vals), hi = Math.max(1000, ...vals);
+    const pad = Math.max((hi - lo) * 0.15, 2); lo -= pad; hi += pad;
+    const t0 = times[0], t1 = times[times.length - 1] || t0 + 1;
+    const X = t => 8 + (t - t0) / Math.max(1, t1 - t0) * 284, Y = v => 8 + (hi - v) / (hi - lo) * 74;
+    const d = vals.map((v, i) => `${i ? "L" : "M"}${X(times[i]).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    const last = vals[vals.length - 1], col = last >= 1000 ? "var(--up)" : "var(--down)";
+    return `<svg class="spark" viewBox="0 0 300 108" role="img" aria-label="Bot value over time, now ${esc(money(last))}">
+      <line x1="8" x2="292" y1="${Y(1000).toFixed(1)}" y2="${Y(1000).toFixed(1)}" stroke="rgba(150,165,255,.3)" stroke-dasharray="3 4"/>
+      <text x="292" y="${(Y(1000) - 4).toFixed(1)}" text-anchor="end" fill="#5a6086" font-size="8" font-family="JetBrains Mono, monospace">start $1,000</text>
+      <path d="${d}L${X(t1).toFixed(1)},90L8,90Z" fill="${col}" opacity=".10"/>
+      <path d="${d}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="${X(t1).toFixed(1)}" cy="${Y(last).toFixed(1)}" r="3" fill="${col}"/>
+      <text x="8" y="104" fill="#5a6086" font-size="8" font-family="JetBrains Mono, monospace">${esc(et(hist[0][0]))}</text>
+      <text x="292" y="104" text-anchor="end" fill="#5a6086" font-size="8" font-family="JetBrains Mono, monospace">${esc(et(hist[hist.length - 1][0]))}</text>
+    </svg>`;
+  }
+  function tradesTable(rows, withBot) {
+    if (!rows.length) return `<p class="note">No trades yet.</p>`;
+    return `<div class="tw"><table class="trades"><thead><tr><th>When</th>${withBot ? "<th>Bot</th>" : ""}<th>Action</th><th style="text-align:right">Price</th><th style="text-align:right">Amount</th></tr></thead><tbody>` +
+      rows.map(t => `<tr><td>${esc(et(t.time))}</td>${withBot ? `<td>${esc(titleById(t.bot))}</td>` : ""}<td class="${t.side === "buy" ? "up" : "down"}">${t.side === "buy" ? "Bought" : "Sold"}<br><span class="note">${esc(t.reason)}</span></td><td class="num">${esc(money(t.price))}</td><td class="num">${esc(money(Math.abs(t.cash_change)))}</td></tr>`).join("") +
+      `</tbody></table></div>`;
+  }
+  const titleOf = b => b.title || b.name;
+  const titleById = id => { const b = byId(id); return b ? titleOf(b) : id; };
+  function eli5(why, kid) {
+    if (!why && !kid) return "";
+    return `<section class="eli5" aria-label="Explained simply"><span>Explain it like I'm 5</span>
+      ${why ? `<p><b>Why it matters:</b> ${esc(why)}</p>` : ""}${kid ? `<p><b>How it works:</b> ${esc(kid)}</p>` : ""}</section>`;
+  }
+  const shareBtn = label => `<button type="button" class="share" data-share>${esc(label)}</button>`;
+  async function share(btn) {
+    const url = location.href;
+    try { await navigator.clipboard.writeText(url); btn.textContent = "Link copied"; }
+    catch (e) {
+      const box = document.createElement("input"); box.value = url; box.readOnly = true; box.className = "sharebox"; box.setAttribute("aria-label", "Link to share");
+      btn.replaceWith(box); box.focus(); box.select(); return;
+    }
+    setTimeout(() => { btn.textContent = btn.textContent === "Link copied" ? "Copy link" : btn.textContent; }, 2500);
+  }
+  function mdLite(s) { return esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^#+\s*(.*)$/gm, "<strong>$1</strong>"); }
+
+  function renderAll() {
+    const ranked = [...data.bots].sort((a, b) => valueOf(b) - valueOf(a));
+    const maxAbs = Math.max(0.005, ...ranked.map(b => Math.abs(changeOf(b))));
+    const holding = data.bots.filter(b => b.status === "holding").length;
+    const trades = data.bots.flatMap(b => b.trades.map(t => ({ ...t, bot: b.name }))).sort((a, b) => b.time.localeCompare(a.time)).slice(0, 10);
+    const T = data.total, tc = totalOf() / T.start - 1;
+    panelIn.innerHTML = `
+      <div class="eyebrow"><span class="dot" style="background:var(--core);box-shadow:0 0 10px var(--core)"></span>The core · all bots</div>
+      <h2>How the bots are doing</h2>
+      <p class="lede">${data.bots.length} practice bots, each given a pretend ${esc(money(data.budget_each).replace(".00", ""))} on a fake-money account. Each one follows a different trading rule so they can be compared. Tap any universe to see what that bot is doing right now.</p>
+      ${eli5(data.overview && data.overview.why, data.overview && data.overview.kid)}
+      ${shareBtn("Copy link to this page")}
+      <div class="big"><b data-live="total">${esc(money(totalOf()))}</b><span data-live="totalchange" class="${tone(tc)}">${esc(pct(tc))}</span><span class="flat">from ${esc(money(T.start))}</span></div>
+      <dl class="facts">
+        ${Object.keys(data.prices).map(sym => { const bb = data.bots.find(x => x.symbol === sym);
+          return `<div><dt>${esc(bb ? bb.symbol_name : sym)}${live[sym] ? " (live)" : ""}</dt><dd data-live="price|${esc(sym)}">${esc(money(priceOf(sym)))}</dd></div>`; }).join("")}
+        <div><dt>Holding right now</dt><dd>${holding} of ${data.bots.length} bots</dd></div>
+        <div><dt>Waiting in cash</dt><dd>${data.bots.length - holding} bots</dd></div>
+      </dl>
+      <section class="sec"><h3>Leaderboard</h3>
+        <div class="rank">${ranked.map((b, i) => {
+          const c = changeOf(b), w = Math.abs(c) / maxAbs * 50;
+          const col = c >= 0 ? "var(--up)" : "var(--down)";
+          return `<button type="button" data-go="${esc(b.name)}"><span class="n">${i + 1}</span>
+            <span class="who"><b>${esc(titleOf(b))}</b><small>${esc(statusText(b))}</small></span>
+            <span class="pct ${tone(c)}" data-live="change|${esc(b.name)}">${esc(pct(c))}</span>
+            <span class="bar"><i style="background:${col};${c >= 0 ? `left:50%;width:${w}%` : `right:50%;width:${w}%`}"></i></span></button>`;
+        }).join("")}</div>
+      </section>
+      <section class="sec"><h3>Latest trades</h3>${tradesTable(trades, true)}</section>
+      ${data.summary ? `<section class="sec"><h3>Daily report · ${esc(data.summary.date)}</h3><div class="report">${mdLite(data.summary.text)}</div></section>` : ""}
+      <p class="foot">Paper trading on Alpaca with fake money. A learning project, not investment advice. It's far too early to judge any bot; a fair comparison needs a few months.<br>Bitcoin prices update live from Coinbase; bot data updates every few minutes (last ${esc(et(data.generated))}).</p>`;
+  }
+
+  function renderBot(b) {
+    const n = nodes.find(x => x.id === b.name);
+    const rel = data.links.filter(l => l.a === b.name || l.b === b.name);
+    const bt = b.backtest, mc = b.monte_carlo, plan = b.plan || { lines: [] };
+    const latest = b.latest ? `${b.latest.wants ? "Rule says: own it" : "Rule says: stay out"} → ${b.latest.action}` : "No check yet";
+    const holding = b.qty > 0;
+    panelIn.innerHTML = `
+      <div class="toprow"><button type="button" class="back" data-go="all">← All bots</button>${shareBtn("Copy link to this bot")}</div>
+      <div class="eyebrow"><span class="dot" style="background:${n.color};box-shadow:0 0 10px ${n.color}"></span>Trading ${esc(b.symbol_name || b.symbol)}</div>
+      <h2>${esc(titleOf(b))}</h2>
+      <p class="note">Bot ID: ${esc(b.name)}</p>
+      <p class="lede">${esc(b.plain || b.description)}</p>
+      ${eli5(b.why, b.kid)}
+      <div class="big"><b data-live="value|${esc(b.name)}">${esc(money(valueOf(b)))}</b><span data-live="change|${esc(b.name)}" class="${tone(changeOf(b))}">${esc(pct(changeOf(b)))}</span>${chip(b)}</div>
+      <dl class="facts">
+        <div><dt>${esc(coin(b.symbol))} price${b.asset === "crypto" ? " (live)" : ""}</dt><dd data-live="price|${esc(b.symbol)}">${esc(money(priceOf(b.symbol)))}</dd></div>
+        <div><dt>Bought in at</dt><dd>${holding ? esc(money(b.entry)) : "Not holding"}</dd></div>
+        ${holding ? `<div><dt>Since it bought</dt><dd data-live="pl|${esc(b.name)}">…</dd></div>` : `<div><dt>Cash waiting</dt><dd>${esc(money(b.cash))}</dd></div>`}
+        ${plan.stop_price ? `<div><dt>Stop-loss at ${esc(money(plan.stop_price))}</dt><dd data-live="stopgap|${esc(b.name)}">…</dd></div>`
+          : `<div><dt>Owns</dt><dd>${holding ? `${esc(Number(b.qty).toFixed(b.asset === "crypto" ? 6 : 4))} ${esc(coin(b.symbol))}` : "Nothing"}</dd></div>`}
+      </dl>
+      <section class="sec">
+        <div class="tabs" role="tablist">${MODES(b).map(([m, label]) => `<button type="button" role="tab" data-mode="${m}" aria-selected="${m === chartMode}">${esc(label)}</button>`).join("")}</div>
+        <div id="chart" class="chart"></div>
+        <div class="legend" id="chartLegend"></div>
+      </section>
+      <section class="sec"><h3>The plan</h3>
+        <div class="next"><span>Next move</span><p>${esc(plan.next || "")}</p></div>
+        ${plan.lines.length ? `<dl class="facts">${plan.lines.map(l => `<div><dt>${esc(l.label)}</dt><dd>${esc(typeof l.value === "number" ? money(l.value) : l.value)}</dd></div>`).join("")}</dl>` : ""}
+        <p class="note">${esc(latest)}${b.latest ? ` · checked ${esc(et(b.latest.time))}` : ""}</p>
+      </section>
+      <dl class="facts">
+        <div><dt>Looks at</dt><dd>${esc(barName(b.bar))}</dd></div>
+        <div><dt>Order type</dt><dd>${b.orders === "limit" ? "Limit (cheaper)" : "Market"}</dd></div>
+        <div><dt>5% stop-loss</dt><dd>${b.stop_loss ? "On" : "Off"}</dd></div>
+        <div><dt>Trades so far</dt><dd>${b.trade_count}</dd></div>
+      </dl>
+      <section class="sec"><h3>Bot value over time</h3>${spark(b.history)}</section>
+      ${bt ? `<section class="sec"><h3>Tested on the past 2 years</h3>
+        <dl class="facts">
+          <div><dt>Full 2 years</dt><dd>${esc(bt.two_years)}</dd></div>
+          <div><dt>Chance of losing*</dt><dd>${esc(mc && mc.chance_losing ? mc.chance_losing : "Not enough trades")}</dd></div>
+          <div><dt>Year 1</dt><dd>${esc(bt.year1)}</dd></div>
+          <div><dt>Year 2</dt><dd>${esc(bt.year2)}</dd></div>
+        </dl>
+        <p class="note">*From replaying the bot's past trades in random order 5,000 times. Past results don't predict future ones.</p></section>` : ""}
+      ${rel.length ? `<section class="sec"><h3>Connected universes</h3><div class="links">${rel.map(l => {
+        const other = l.a === b.name ? l.b : l.a;
+        return `<button type="button" data-go="${esc(other)}"><b>${esc(titleById(other))}</b><span>${esc(l.why)}</span></button>`;
+      }).join("")}</div></section>` : ""}
+      <section class="sec"><h3>Trades (${b.trade_count})</h3>${tradesTable([...b.trades].reverse(), false)}</section>
+      <p class="foot">Fake money on a practice account. ${b.asset === "crypto" ? "Live prices from Coinbase; the bot trades on Alpaca, so its prices can differ slightly. " : "Stock prices update every few minutes while the market is open. "}Bot data from ${esc(et(data.generated))}.</p>`;
+    paintLive();
+    mountChart(b);
+  }
+
+  function select(id, fromHash) {
+    if (id !== "all" && !byId(id)) id = "all";
+    if (id !== selected) chartMode = "bot";
+    selected = id;
+    for (const n of nodes) n.el.classList.toggle("sel", n.id === id);
+    if (id === "all" && chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
+    id === "all" ? renderAll() : renderBot(byId(id));
+    document.getElementById("panel").scrollTop = 0;
+    if (!fromHash && location.hash.slice(1) !== id && !(id === "all" && !location.hash)) location.hash = id;
+    if (reduce) draw(0);
+  }
+  panelIn.addEventListener("click", e => {
+    const sh = e.target.closest("[data-share]");
+    if (sh) { share(sh); return; }
+    const tab = e.target.closest("[data-mode]");
+    if (tab) {
+      chartMode = tab.dataset.mode;
+      for (const t of panelIn.querySelectorAll("[data-mode]")) t.setAttribute("aria-selected", t === tab);
+      mountChart(byId(selected));
+      return;
+    }
+    const go = e.target.closest("[data-go]"); if (!go) return;
+    select(go.dataset.go);
+    if (matchMedia("(max-width: 860px)").matches && go.dataset.go !== "all") stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  });
+  addEventListener("hashchange", () => select(location.hash.slice(1) || "all", true));
+
+  // ---------- boot ----------
+  function build() {
+    document.getElementById("live").classList.toggle("off", !data.runner.running);
+    const center = { id: "all", color: COLORS.core, pts: makeSphere(innerWidth < 600 ? 900 : 1500), related: new Set(), phase: 0 };
+    nodes = [center];
+    const sorted = [...data.bots];
+    document.getElementById("botCount").textContent = data.bots.length;
+    for (const b of sorted) {
+      const holding = b.status === "holding";
+      nodes.push({ id: b.name, bot: b, color: COLORS.fine, mood: "fine", related: new Set(["all"]),
+        pts: makeSpiral((innerWidth < 600 ? 340 : 560) * (holding ? 1.25 : 1), b.rule === "regime" ? 3 : 2),
+        tilt: rand(0, Math.PI * 2), phase: Math.random() });
+    }
+    links = data.links.map(l => ({ a: nodes.find(n => n.id === l.a), b: nodes.find(n => n.id === l.b), phase: Math.random() })).filter(l => l.a && l.b);
+    for (const l of links) { l.a.related.add(l.b.id); l.b.related.add(l.a.id); }
+    for (const n of nodes.slice(1)) center.related.add(n.id);
+    nodesEl.innerHTML = "";
+    for (const n of nodes) {
+      const el = document.createElement("button");
+      el.type = "button"; el.className = "node" + (n.id === "all" ? " center" : "");
+      el.setAttribute("aria-label", n.id === "all" ? "All bots summary" : `${titleOf(n.bot)}, ${statusText(n.bot)}`);
+      el.innerHTML = `<span class="tag"><span class="nm">${n.id === "all" ? "" : `<svg class="flame" hidden viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>`}${esc(n.id === "all" ? "All bots" : `${n.bot.asset_name || n.id}`)}${n.id === "all" ? "" : ` <span class="v">v${esc(n.bot.version || 1)}</span>`}</span>${n.id === "all" ? "" : `<span class="st">${esc(n.bot.strategy || "")}</span>`}<span class="ch"></span></span>`;
+      el.addEventListener("click", () => select(n.id));
+      n.el = el; nodesEl.appendChild(el);
+    }
+    layout();
+    const keep = selected;
+    selected = null;
+    select(keep || location.hash.slice(1) || "all", true);
+    paintLive();
+  }
+
+  // Bot data refresh: swap in new numbers; redraw the panel only if that bot really changed.
+  const botKey = b => JSON.stringify([b.status, b.qty, b.trade_count, b.latest, b.plan && b.plan.next]);
+  async function refresh() {
+    let d; try { d = await loadData(); } catch (e) { paintLive(); return; }
+    if (d.generated === data.generated) { paintLive(); return; }
+    const before = selected && selected !== "all" ? botKey(byId(selected)) : null;
+    const statusChanged = d.bots.some(b => { const o = data.bots.find(x => x.name === b.name); return !o || o.status !== b.status; });
+    data = d;
+    if (statusChanged) { build(); return; }
+    for (const n of nodes.slice(1)) n.bot = byId(n.id);
+    document.getElementById("live").classList.toggle("off", !data.runner.running);
+    if (selected === "all") { const p = document.getElementById("panel"), y = p.scrollTop; renderAll(); p.scrollTop = y; }
+    else if (selected && botKey(byId(selected)) !== before) renderBot(byId(selected));
+    paintLive();
+  }
+
+  new ResizeObserver(() => { layout(); if (reduce) draw(0); }).observe(stage);
+  layout();
+  requestAnimationFrame(loop);
+  loadData()
+    .then(d => { data = d; build(); if (reduce) draw(0); tick(); setInterval(tick, 5000); setInterval(refresh, 60000); })
+    .catch(() => { panelIn.innerHTML = `<p class="err">Couldn't load the bot data. Try refreshing the page.</p>`; document.getElementById("liveText").textContent = "No data"; });
+})();
+</script>
