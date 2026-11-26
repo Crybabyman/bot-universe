@@ -171,15 +171,46 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   .panel { border-left: 0; border-top: 1px solid var(--line); backdrop-filter: none; background: var(--void); }
   .hint { display: none; }
 }
+.missionlink { pointer-events: auto; justify-self: start; font-size: 12px; color: var(--core); text-decoration: none; border: 1px solid rgba(184, 164, 255, 0.4); border-radius: 999px; padding: 3px 11px; background: rgba(9, 11, 24, 0.7); }
+.missionlink:hover, .missionlink:focus-visible { border-color: var(--core); color: #fff; outline: none; }
+.mission { min-height: 100%; background: radial-gradient(1200px 600px at 50% -10%, rgba(120, 100, 255, 0.14), transparent 70%), var(--void); }
+.mission-in { max-width: 720px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+.mission-unused h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(22px, 4vw, 32px); line-height: 1.3; letter-spacing: 0.03em; text-wrap: balance; }
+.mission-unused h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+.mission-unused p, .mission-unused li, .mission-unused dd { font-size: 15.5px; line-height: 1.65; color: var(--ink); max-width: 66ch; }
+.mission-unused p { margin: 0 0 10px; }
+.mission-panel b { font-weight: 700; }
+.mission-unused ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.m-lede { font-size: 18px !important; color: var(--dim) !important; margin-top: -12px !important; }
+.m-callout { padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(246, 185, 76, 0.35); background: rgba(246, 185, 76, 0.08); margin-bottom: 12px; font-size: 15.5px; line-height: 1.6; }
+.m-steps { list-style: none; counter-reset: step; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
+.m-steps li { counter-increment: step; position: relative; display: grid; gap: 4px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--raise); font-size: 14px; }
+.m-steps li::before { content: counter(step); font-family: var(--mono); font-size: 11px; color: var(--core); }
+.m-steps li b { font-weight: 700; }
+.m-steps li span { color: var(--dim); font-size: 12.5px; line-height: 1.45; }
+.m-platforms { margin: 0; display: grid; gap: 10px; }
+.m-platforms div { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--raise); }
+.m-platforms dt { font-weight: 700; margin-bottom: 4px; }
+.m-platforms dd { margin: 0; color: var(--dim) !important; font-size: 14.5px !important; }
+.missionback { font-size: 13px; text-decoration: none; }
+.mission-panel .mission-in { max-width: none; margin: 0; padding: 0; gap: 22px; }
+.mission-panel h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 21px; line-height: 1.35; letter-spacing: 0.03em; text-wrap: balance; }
+.mission-panel h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+.mission-panel p, .mission-panel li, .mission-panel dd { font-size: 14.5px; line-height: 1.62; color: var(--ink); }
+.mission-panel p { margin: 0 0 10px; }
+.mission-panel ul { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.mission-panel .m-lede { font-size: 16px !important; color: var(--dim) !important; margin-top: -10px !important; }
+.mission-panel .m-steps { grid-template-columns: 1fr; }
 </style>
 
-<div class="app">
+<div class="app" id="app">
   <div class="stage" id="stage">
     <canvas id="sky" aria-hidden="true"></canvas>
     <div class="masthead">
       <h1>Bot Universe</h1>
       <p><span id="botCount">Practice</span> trading bots · fake money · tap a galaxy to look inside</p>
       <nav class="crumbs" id="crumbs" aria-label="Where you are"></nav>
+      <a class="missionlink" href="#mission">Our mission →</a>
       <span class="live" id="live"><i></i><span id="liveText">Loading…</span></span>
       <div class="moods" aria-label="Color key"><span><i style="background:#f6b94c;box-shadow:0 0 8px #f6b94c"></i>Doing fine</span><span><i style="background:#4fb8ff;box-shadow:0 0 8px #4fb8ff"></i>Making money (+1% or more)</span><span><svg class="flame" viewBox="0 0 12 16" aria-hidden="true"><path d="M6 0c1 4 5 6 5 10.5a5 5 0 0 1-10 0C1 8 2.5 6.5 3.5 5.5c.1 1.5.8 2.5 1.7 2.8C4.6 5.5 5 2.5 6 0z" fill="#ff6a3d"/><path d="M6 8c.5 2 2.5 3 2.5 5a2.5 2.5 0 0 1-5 0c0-1.2.8-2 1.4-2.6C5 9.7 5.5 8.8 6 8z" fill="#ffd166"/></svg>Losing money (−1% or more)</span></div>
     </div>
@@ -195,6 +226,84 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
   <aside class="panel" id="panel" aria-live="polite">
     <div class="panel-in" id="panelIn"><p class="note">Loading the bots…</p></div>
   </aside>
+</div>
+
+
+<div id="missionText" hidden>
+  <div class="mission-in">
+    <a class="back missionback" href="#all">← All galaxies</a>
+    <p class="eyebrow"><span class="dot" style="background:var(--core);box-shadow:0 0 10px var(--core)"></span>Our mission</p>
+    <h1 id="missionTitle">Find out, honestly, whether simple trading robots can beat just buying and holding.</h1>
+    <p class="m-lede">And use fake money until the evidence says yes.</p>
+
+    <section>
+      <h2>What this is</h2>
+      <p>Bot Universe is a practice trading lab. It runs dozens of small trading robots, each following one simple rule, on a paper-trading account at Alpaca. A paper account works like a real one, with real prices and real orders, except <b>the money is pretend</b>. Nothing here has ever traded a real dollar.</p>
+      <p>Each galaxy on the map is one thing the bots trade, like Bitcoin, gold or the S&amp;P 500. Each small universe is one bot. Every galaxy also has a "Buy &amp; Hold" bot that just buys once and never sells. That's the scorekeeper: if a clever bot can't beat simply holding, it isn't really clever.</p>
+      <p>It's built by a beginner who is learning as they go, working with an AI assistant. We're not a fund, a company or professional traders.</p>
+    </section>
+
+    <section>
+      <h2>What this is all for</h2>
+      <ul>
+        <li><b>To learn how trading really works</b> without losing real money to find out.</li>
+        <li><b>To separate what works from what just looks good.</b> The internet is full of screenshots of bots and strategies "printing money". Almost none of them are tested honestly. We want our own evidence.</li>
+        <li><b>To end up with one or two strategies we actually trust.</b> Then we'd run them with a small amount of our own money, either through a trading platform or with our own bot.</li>
+      </ul>
+      <p>What it's <b>not</b> for: getting rich quick, selling signals or courses, or managing anyone else's money.</p>
+    </section>
+
+    <section>
+      <h2>How it's going (honestly)</h2>
+      <div class="m-callout"><b>Short version:</b> it's very early, nothing is proven yet, and most ideas have failed. That's normal, and it's the point.</div>
+      <ul>
+        <li><b>It just started.</b> The lab opened in late November 2026. A few days or weeks of results are mostly luck, so the numbers on the map mean very little yet.</li>
+        <li><b>Nothing has earned our trust.</b> A strategy only becomes a real candidate after at least 90 days of beating Buy &amp; Hold with live prices. None has done that yet.</li>
+        <li><b>Most ideas fail.</b> Fast-trading bots lost badly in our tests because every trade costs a small fee, and those fees add up. The popular "ICT" day-trading style lost nearly everything in our backtests. A bot that flips a coin to decide lost about three-quarters of its money, mostly to fees. Every idea in our first batch failed the deep tests.</li>
+        <li><b>What looks most promising</b> are slow, boring rules that only trade a few times a year: own something while its price is trending up, step aside when it isn't. They looked best when spread across many coins or funds at once, mainly because they sat out big crashes.</li>
+        <li><b>But a good backtest is not proof.</b> A famous study of 888 trading strategies found that how good a strategy looked on past data barely predicted how it did afterwards. That's why everything has to prove itself again on live prices.</li>
+        <li><b>Even the good rules have a catch.</b> In rising markets they usually make <i>less</i> than just holding. What they offer is smaller drops when things crash, not bigger wins.</li>
+        <li><b>Right now prices are falling,</b> so most of the trend bots are sitting in cash. That's what they're supposed to do, but it also means there's not much to see yet.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How a strategy earns trust</h2>
+      <ol class="m-steps">
+        <li><b>Idea</b><span>from research, a platform, or even TikTok</span></li>
+        <li><b>Hard tests</b><span>years of history, fees included, nearby settings, a luck check</span></li>
+        <li><b>Shadow bots</b><span>follow live prices with fake books, no orders</span></li>
+        <li><b>Paper bots</b><span>real orders, fake money, at least 90 days</span></li>
+        <li><b>Small real money</b><span>only if it's still winning, and only our own</span></li>
+      </ol>
+      <p>A few rules keep us honest. We never change a bot once it's running, because that would make its record meaningless; an improvement becomes a new version. Bots that fail get retired, but their records stay visible. And every day an automatic review writes down what changed and why.</p>
+    </section>
+
+    <section>
+      <h2>The platforms, and how we plan to use them</h2>
+      <dl class="m-platforms">
+        <div><dt>Alpaca</dt><dd>Where the bots trade today, on a free paper account. If a strategy ever proves itself, the plan is to run the same code with a small real account here. Stocks are commission-free. We still need to confirm crypto trading is available for our real account; Kraken is the backup for crypto.</dd></div>
+        <div><dt>Our own bot</dt><dd>This is the engine, and we plan to keep it that way. Our research found that none of the popular bot platforms could run our exact slow rules for US users, and many of them keep your exchange keys on their own servers, which has led to hacks before. Running our own code costs nothing and does exactly what we tell it.</dd></div>
+        <div><dt>Pionex (Webot in the US), 3Commas, Cryptohopper and copy-trading sites</dt><dd>We study them, and we copy their most popular setups, like grid bots and "DCA" bots, as "marketplace twins" to test on our own data. We don't hand them money. The returns these sites show are often inflated: a few lucky days get stretched into a yearly number, and bots that failed quietly disappear from the leaderboards.</dd></div>
+        <div><dt>Composer and TradingView</dt><dd>Sources of ideas. Composer's free plan might also serve as a second check for one simple stock rule.</dd></div>
+        <div><dt>Coinbase and Kraken</dt><dd>Possible places to run a proven crypto rule later, using "trade-only" keys that can buy and sell but can never withdraw money.</dd></div>
+      </dl>
+    </section>
+
+    <section>
+      <h2>What we won't do</h2>
+      <ul>
+        <li>Use real money before a strategy has proven itself, and even then, only a small amount we can afford to lose.</li>
+        <li>Take anyone else's money or sell this as an investment.</li>
+        <li>Promise returns. Anything that promises steady profits is a red flag, and that includes trading bots.</li>
+        <li>Use borrowed money (leverage) or offshore exchanges that aren't allowed in the US.</li>
+        <li>Give financial advice. We're learning in public, not telling anyone what to do with their money.</li>
+      </ul>
+    </section>
+
+    <p class="foot">This is a learning project that uses fake money. Nothing on this site is financial advice. Written November 2026, and we'll update it as we learn.</p>
+    <a class="back missionback" href="#all">← Back to all galaxies</a>
+  </div>
 </div>
 
 <script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -504,7 +613,7 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     neb.addColorStop(0, center.kind === "core" ? "rgba(120,100,255,0.16)" : "rgba(246,185,76,0.10)"); neb.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = neb; ctx.fillRect(center.x - center.r * 3.3, center.y - center.r * 3.3, center.r * 6.6, center.r * 6.6);
 
-    const focus = selected === "all" ? null : selected;
+    const focus = selected === "all" || selected === "mission" ? null : selected;
     // branches: every galaxy hangs off the core, every bot off its galaxy
     for (const n of nodes) {
       const par = n.parent; if (!par) continue;
@@ -1077,12 +1186,28 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
       return;
     }
     const go = e.target.closest("[data-go]"); if (!go) return;
+    document.title = "Bot Universe";
     select(go.dataset.go);
     if (matchMedia("(max-width: 860px)").matches && go.closest("#panelIn")) stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
   }
   panelIn.addEventListener("click", onGo);
   document.getElementById("crumbs").addEventListener("click", onGo);
-  addEventListener("hashchange", () => select(location.hash.slice(1) || "all", true));
+  // "Our mission" opens in the side panel, with the galaxy map still on screen.
+  function showMission() {
+    if (chart) { chart.remove(); chart = null; mainSeries = null; chartKind = null; }
+    selected = "mission";
+    for (const n of nodes) n.el.classList.toggle("sel", false);
+    document.getElementById("crumbs").innerHTML = `<button type="button" data-go="all">All galaxies</button><span>›</span><b>Our mission</b>`;
+    panelIn.innerHTML = `<div class="mission-panel">${document.getElementById("missionText").innerHTML}</div>`;
+    document.title = "Our mission · Bot Universe";
+    document.getElementById("panel").scrollTop = 0;
+    if (matchMedia("(max-width: 860px)").matches) document.getElementById("panel").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }
+  addEventListener("hashchange", () => {
+    if (location.hash === "#mission") { showMission(); return; }
+    document.title = "Bot Universe";
+    select(location.hash.slice(1) || "all", true);
+  });
 
   // ---------- boot ----------
   const small = () => innerWidth < 600;
@@ -1161,7 +1286,8 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     syncNodes();
     const keep = selected;
     selected = null;
-    select(keep || location.hash.slice(1) || "all", true);
+    select(keep && keep !== "mission" ? keep : (location.hash === "#mission" ? "all" : location.hash.slice(1) || "all"), true);
+    if (location.hash === "#mission" || keep === "mission") showMission();
     paintLive();
   }
 
@@ -1179,7 +1305,8 @@ h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; 
     if (countChanged) syncNodes(); else if (statusChanged) relayout(false);
     document.getElementById("live").classList.toggle("off", !data.runner.running);
     const p = document.getElementById("panel"), y = p.scrollTop;
-    if (selected === "all") { renderAll(); p.scrollTop = y; }
+    if (selected === "mission") { /* keep the mission text as it is */ }
+    else if (selected === "all") { renderAll(); p.scrollTop = y; }
     else if (groupById(selected)) { /* keep the chart; numbers update live */ }
     else if (selected && botKey(byId(selected)) !== before) renderBot(byId(selected));
     paintLive();
